@@ -8,14 +8,6 @@ package sys
 import (
 	"context"
 	"fmt"
-	"github.com/gogf/gf/v2/database/gdb"
-	"github.com/gogf/gf/v2/encoding/gjson"
-	"github.com/gogf/gf/v2/errors/gerror"
-	"github.com/gogf/gf/v2/frame/g"
-	"github.com/gogf/gf/v2/net/ghttp"
-	"github.com/gogf/gf/v2/os/gctx"
-	"github.com/gogf/gf/v2/os/gtime"
-	"github.com/gogf/gf/v2/util/gconv"
 	"hotgo/internal/consts"
 	"hotgo/internal/dao"
 	"hotgo/internal/library/hgorm/handler"
@@ -30,6 +22,15 @@ import (
 	"hotgo/utility/convert"
 	"hotgo/utility/excel"
 	"hotgo/utility/useragent"
+
+	"github.com/gogf/gf/v2/database/gdb"
+	"github.com/gogf/gf/v2/encoding/gjson"
+	"github.com/gogf/gf/v2/errors/gerror"
+	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/net/ghttp"
+	"github.com/gogf/gf/v2/os/gctx"
+	"github.com/gogf/gf/v2/os/gtime"
+	"github.com/gogf/gf/v2/util/gconv"
 )
 
 type sSysLoginLog struct{}
@@ -124,7 +125,11 @@ func (s *sSysLoginLog) Export(ctx context.Context, in *sysin.LoginLogListInp) (e
 
 // Delete 删除登录日志
 func (s *sSysLoginLog) Delete(ctx context.Context, in *sysin.LoginLogDeleteInp) (err error) {
-	_, err = s.Model(ctx).WherePri(in.Id).Delete()
+	if in.Clear {
+		_, err = s.Model(ctx).Where(true).Delete()
+	} else if in.Id != nil {
+		_, err = s.Model(ctx).WherePri(in.Id).Delete()
+	}
 	return
 }
 

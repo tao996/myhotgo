@@ -1,0 +1,10 @@
+.min-left-space {
+  margin-left: 5px;
+}
+.my-form .n-form-item {
+  margin-bottom: 20px;
+}
+.my-form .n-form-item .n-form-item-label {
+  font-weight: bold;
+  color: #555;
+}

@@ -30,10 +30,14 @@ import (
 	"github.com/gogf/gf/v2/util/gconv"
 )
 
-type sSysConfig struct{}
+type sSysConfig struct {
+	rows map[string]*sysin.GetConfigModel
+}
 
 func NewSysConfig() *sSysConfig {
-	return &sSysConfig{}
+	return &sSysConfig{
+		rows: make(map[string]*sysin.GetConfigModel),
+	}
 }
 
 func init() {
@@ -49,6 +53,29 @@ func (s *sSysConfig) InitConfig(ctx context.Context) {
 
 // LoadConfig 加载系统配置
 func (s *sSysConfig) LoadConfig(ctx context.Context) (err error) {
+	s.rows = make(map[string]*sysin.GetConfigModel)
+	var models []*entity.SysConfig
+	if err = dao.SysConfig.Ctx(ctx).Fields("group", "key", "value", "type").Scan(&models); err != nil {
+		err = gerror.Wrapf(err, "查询配置失败，请稍后重试！")
+		return
+	}
+
+	if len(models) > 0 {
+		for _, v := range models {
+			val, err := s.ConversionType(ctx, v)
+			if err != nil {
+				return err
+			}
+			if _, ok := s.rows[v.Group]; !ok {
+				s.rows[v.Group] = new(sysin.GetConfigModel)
+				s.rows[v.Group].List = make(g.Map)
+			}
+			s.rows[v.Group].List[v.Key] = val
+		}
+	}
+	for group := range s.rows {
+		s.rows[group].List = simple.FilterMaskDemo(ctx, s.rows[group].List)
+	}
 	wx, err := s.GetWechat(ctx)
 	if err != nil {
 		return
@@ -205,6 +232,9 @@ func (s *sSysConfig) GetConfigByGroup(ctx context.Context, in *sysin.GetConfigIn
 		err = gerror.New("分组不能为空")
 		return
 	}
+	if data, ok := s.rows[in.Group]; ok {
+		return data, nil
+	}
 
 	var models []*entity.SysConfig
 	cols := dao.SysConfig.Columns()
@@ -226,6 +256,7 @@ func (s *sSysConfig) GetConfigByGroup(ctx context.Context, in *sysin.GetConfigIn
 	}
 
 	res.List = simple.FilterMaskDemo(ctx, res.List)
+	s.rows[in.Group] = res
 	return
 }
 
@@ -293,35 +324,8 @@ func (s *sSysConfig) getConfigByKey(key string, models []*entity.SysConfig) *ent
 }
 
 // syncUpdate 同步更新一些加载配置
-func (s *sSysConfig) syncUpdate(ctx context.Context, in *sysin.UpdateConfigInp) (err error) {
-	var cfg any
-	switch in.Group {
-	case "wechat":
-		cfg, err = s.GetWechat(ctx)
-		if err == nil {
-			wechat.SetConfig(cfg.(*model.WechatConfig))
-		}
-	case "pay":
-		cfg, err = s.GetPay(ctx)
-		if err == nil {
-			payment.SetConfig(cfg.(*model.PayConfig))
-		}
-	case "upload":
-		cfg, err = s.GetUpload(ctx)
-		if err == nil {
-			storager.SetConfig(cfg.(*model.UploadConfig))
-		}
-	case "sms":
-		cfg, err = s.GetSms(ctx)
-		if err == nil {
-			sms.SetConfig(cfg.(*model.SmsConfig))
-		}
-	}
-
-	if err != nil {
-		err = gerror.Newf("syncUpdate %v conifg fail：%+v", in.Group, err.Error())
-	}
-	return
+func (s *sSysConfig) syncUpdate(ctx context.Context, _ *sysin.UpdateConfigInp) (err error) {
+	return s.LoadConfig(ctx)
 }
 
 // ClusterSync 集群同步

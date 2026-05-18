@@ -8,10 +8,6 @@ package sys
 import (
 	"context"
 	"fmt"
-	"github.com/gogf/gf/v2/database/gdb"
-	"github.com/gogf/gf/v2/os/gctx"
-	"github.com/gogf/gf/v2/util/gconv"
-	"github.com/gogf/gf/v2/util/gmode"
 	"hotgo/internal/dao"
 	"hotgo/internal/library/hgorm"
 	"hotgo/internal/library/hgorm/handler"
@@ -21,6 +17,11 @@ import (
 	"hotgo/internal/service"
 	"hotgo/utility/convert"
 	"hotgo/utility/excel"
+
+	"github.com/gogf/gf/v2/database/gdb"
+	"github.com/gogf/gf/v2/os/gctx"
+	"github.com/gogf/gf/v2/util/gconv"
+	"github.com/gogf/gf/v2/util/gmode"
 )
 
 type sSysServeLog struct{}
@@ -121,7 +122,11 @@ func (s *sSysServeLog) Export(ctx context.Context, in *sysin.ServeLogListInp) (e
 
 // Delete 删除服务日志
 func (s *sSysServeLog) Delete(ctx context.Context, in *sysin.ServeLogDeleteInp) (err error) {
-	_, err = dao.SysServeLog.Ctx(ctx).Where(dao.SysServeLog.Columns().Id, in.Id).Delete()
+	if in.Clear {
+		_, err = dao.SysServeLog.Ctx(ctx).Where(true).Delete()
+	} else {
+		_, err = dao.SysServeLog.Ctx(ctx).Where(dao.SysServeLog.Columns().Id, in.Id).Delete()
+	}
 	return
 }
 

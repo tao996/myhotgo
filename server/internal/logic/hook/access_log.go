@@ -7,18 +7,19 @@ package hook
 
 import (
 	"context"
-	"github.com/gogf/gf/v2/frame/g"
-	"github.com/gogf/gf/v2/net/ghttp"
-	"github.com/gogf/gf/v2/os/gtime"
-	"github.com/gogf/gf/v2/text/gstr"
 	"hotgo/internal/library/contexts"
 	"hotgo/internal/service"
 	"hotgo/utility/simple"
 	"strings"
+
+	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/net/ghttp"
+	"github.com/gogf/gf/v2/os/gtime"
+	"github.com/gogf/gf/v2/text/gstr"
 )
 
-// 忽略的请求方式
-var ignoredRequestMethods = []string{"HEAD", "PRI"}
+// 需要记录的请求方法
+var useRequestMethods = []string{"POST", "PUT", "DELETE"}
 
 // accessLog 访问日志
 func (s *sHook) accessLog(r *ghttp.Request) {
@@ -49,8 +50,8 @@ func (s *sHook) isIgnoredRequest(r *ghttp.Request) bool {
 		return true
 	}
 
-	if gstr.InArray(ignoredRequestMethods, strings.ToUpper(r.Method)) {
-		return true
+	if gstr.InArray(useRequestMethods, strings.ToUpper(r.Request.Method)) {
+		return false
 	}
-	return false
+	return true
 }

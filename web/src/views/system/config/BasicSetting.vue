@@ -2,11 +2,11 @@
   <div>
     <n-spin :show="show" description="请稍候...">
       <n-form :label-width="80" :model="formValue" :rules="rules" ref="formRef">
-        <n-form-item label="网站名称" path="basicName">
+        <n-form-item label="网站名称" path="basicName" :show-feedback="false">
           <n-input v-model:value="formValue.basicName" placeholder="请输入网站名称" />
         </n-form-item>
 
-        <n-form-item label="网站logo" path="basicLogo">
+        <n-form-item label="网站logo" path="basicLogo" :show-feedback="false">
           <FileChooser v-model:value="formValue.basicLogo" file-type="image" />
         </n-form-item>
 
@@ -26,7 +26,14 @@
           </template>
         </n-form-item>
 
-        <n-form-item label="网站开启访问" path="basicSystemOpen">
+        <n-form-item
+          label="网站开启访问"
+          path="basicSystemOpen"
+          label-placement="left"
+          label-align="left"
+          label-width="120"
+          :show-feedback="false"
+        >
           <n-switch
             size="large"
             v-model:value="formValue.basicSystemOpen"
@@ -34,7 +41,7 @@
           />
         </n-form-item>
 
-        <n-form-item label="网站关闭提示" path="basicCloseText">
+        <n-form-item label="网站关闭提示" path="basicCloseText" :show-feedback="false">
           <n-input
             v-model:value="formValue.basicCloseText"
             type="textarea"
@@ -42,11 +49,11 @@
           />
         </n-form-item>
 
-        <n-form-item label="备案编号" path="basicIcpCode">
+        <n-form-item label="备案编号" path="basicIcpCode" :show-feedback="false">
           <n-input placeholder="请输入备案编号" v-model:value="formValue.basicIcpCode" />
         </n-form-item>
 
-        <n-form-item label="版权所有" path="basicCopyright">
+        <n-form-item label="版权所有" path="basicCopyright" :show-feedback="false">
           <n-input placeholder="版权所有" v-model:value="formValue.basicCopyright" />
           <template #feedback>
             请填写网站版权信息，如：© 2026 YourCompanyName All Rights Reserved.

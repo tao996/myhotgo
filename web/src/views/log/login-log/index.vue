@@ -43,6 +43,19 @@
             批量删除
           </n-button>
           <n-button
+            type="error"
+            @click="handleDeleteAll"
+            class="min-left-space"
+            v-if="hasPermission(['/loginLog/delete'])"
+          >
+            <template #icon>
+              <n-icon>
+                <DeleteOutlined />
+              </n-icon>
+            </template>
+            清空日志
+          </n-button>
+          <n-button
             type="primary"
             @click="handleExport"
             class="min-left-space"
@@ -165,7 +178,20 @@
       },
     });
   }
-
+  function handleDeleteAll() {
+    dialog.warning({
+      title: '警告',
+      content: '你确定要清空全部登录日志吗？',
+      positiveText: '确定',
+      negativeText: '取消',
+      onPositiveClick: () => {
+        Delete({ clear: true }).then((_res) => {
+          message.success('删除成功');
+          reloadTable();
+        });
+      },
+    });
+  }
   function handleExport() {
     message.loading('正在导出列表...', { duration: 1200 });
     Export(searchFormRef.value?.formModel);

@@ -132,6 +132,15 @@
             },
           },
           {
+            type: 'default',
+            label: '订单查询',
+            onClick: handleApplyQuery.bind(null, record),
+            // auth: ['/order/applyQuery'],
+            ifShow: () => {
+              return record.status == 1;
+            },
+          },
+          {
             label: '删除',
             onClick: handleDelete.bind(null, record),
             auth: ['/order/delete'],
@@ -222,7 +231,10 @@
     showAcceptModal.value = true;
     formParams.value = newState(record as State);
   }
-
+  // 订单查询
+  function handleApplyQuery(record: Recordable) {
+    console.log(record); // TODO: 订单查询
+  }
   defineExpose({
     reloadTable,
   });

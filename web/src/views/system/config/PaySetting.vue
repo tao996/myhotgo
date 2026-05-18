@@ -6,16 +6,20 @@
           <n-switch size="large" v-model:value="formValue.payDebug" />
           <template #feedback>开启后控制台会输出支付相关的日志</template>
         </n-form-item>
+        <n-form-item label="代理域名" path="payProxy">
+          <n-input v-model:value="formValue.payProxy" placeholder="" />
+          <template #feedback>本地测试时用于接收通知，system.debug = true 时生效</template>
+        </n-form-item>
 
         <n-divider title-placement="left">支付宝</n-divider>
-        <n-alert :show-icon="false" type="info">
+        <n-alert :show-icon="false" type="info" style="margin-bottom: 16px">
           确保你已经申请开通过支付宝相关产品权限，建议按照以下步骤进行配置
           <br />1.
           下载支付宝平台密钥工具（下载地址：https://opendocs.alipay.com/common/02kipk），加签方式选择证书，加密算法选择RSA2
           <br />2. 生成后的私钥请在工具中转换为PKCS1格式 <br />3.
           在支付宝中配置证书，参考地址：https://opendocs.alipay.com/common/02khjo?pathHash=5403bedd
         </n-alert>
-        <n-form-item label="应用ID" path="payAliPayAppId">
+        <n-form-item label="应用ID" path="payAliPayAppId" :show-feedback="false">
           <n-input v-model:value="formValue.payAliPayAppId" placeholder="" />
           <template #feedback></template>
         </n-form-item>
@@ -171,6 +175,7 @@
 
   const formValue = ref({
     payDebug: true,
+    payProxy: '',
     payAliPayAppId: '',
     payAliPayPrivateKey: '',
     payAliPayAppCertPublicKey: '',

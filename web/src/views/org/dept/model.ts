@@ -170,6 +170,11 @@ export const columns = [
     width: 150,
   },
   {
+    title: '邮箱',
+    key: 'email',
+    width: 150,
+  },
+  {
     title: '状态',
     key: 'status',
     align: 'left',

@@ -18,6 +18,7 @@ import (
 	"hotgo/internal/model/entity"
 	"hotgo/internal/model/input/payin"
 	"hotgo/internal/service"
+	"hotgo/utility/simple"
 	"hotgo/utility/validate"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
@@ -110,19 +111,28 @@ func (s *sPay) Create(ctx context.Context, in payin.PayCreateInp) (res *payin.Pa
 
 // GenNotifyURL 生成支付通知地址
 func (s *sPay) GenNotifyURL(ctx context.Context, in payin.PayCreateInp) (notifyURL string, err error) {
-	basic, err := service.SysConfig().GetBasic(ctx)
-	if err != nil {
-		return
+	domain := ""
+	if simple.Debug(ctx) {
+		pay, err := service.SysConfig().GetPay(ctx)
+		if err != nil {
+			return "", err
+		}
+		domain = pay.Proxy
 	}
 
-	if basic.Domain == "" {
-		err = gerror.New("请先到后台【系统设置】-【配置管理】中设置网站域名！")
-		return
+	if domain != "" {
+		basic, err := service.SysConfig().GetBasic(ctx)
+		if err != nil {
+			return "", err
+		}
+
+		if basic.Domain == "" {
+			return "", gerror.New("请先到后台【系统设置】-【配置管理】中设置网站域名！")
+		}
 	}
 
-	if !validate.IsURL(basic.Domain) {
-		err = gerror.New("网站域名格式有误，请检查！")
-		return
+	if !validate.IsURL(domain) {
+		return "", gerror.New("网站域名格式有误，请检查！")
 	}
 
 	var object interface{}
@@ -134,14 +144,13 @@ func (s *sPay) GenNotifyURL(ctx context.Context, in payin.PayCreateInp) (notifyU
 	case consts.PayTypeQQPay:
 		object = v1.NotifyQQPayReq{}
 	default:
-		err = gerror.Newf("未被支持的支付方式：%v", in.PayType)
-		return
+		return "", gerror.Newf("未被支持的支付方式：%v", in.PayType)
+
 	}
 
-	notifyURL = fmt.Sprintf("%s%s%s",
-		basic.Domain,
+	return fmt.Sprintf("%s%s%s",
+		domain,
 		g.Cfg().MustGet(ctx, "router.api.prefix", "/api").String(),
 		gmeta.Get(object, "path").String(),
-	)
-	return
+	), nil
 }

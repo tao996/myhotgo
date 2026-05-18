@@ -4,13 +4,23 @@ import { formatBefore } from '@/utils/dateUtil';
 
 export const columns = [
   {
-    title: '管理员ID',
+    title: 'ID',
     key: 'id',
     width: 100,
   },
   {
     title: '用户名',
     key: 'username',
+    width: 100,
+  },
+  {
+    title: '邮箱',
+    key: 'email',
+    width: 100,
+  },
+  {
+    title: '手机号',
+    key: 'mobile',
     width: 100,
   },
   {

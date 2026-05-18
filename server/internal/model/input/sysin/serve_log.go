@@ -7,14 +7,16 @@ package sysin
 
 import (
 	"context"
-	"github.com/gogf/gf/v2/os/gtime"
 	"hotgo/internal/model/entity"
 	"hotgo/internal/model/input/form"
+
+	"github.com/gogf/gf/v2/os/gtime"
 )
 
 // ServeLogDeleteInp 删除服务日志
 type ServeLogDeleteInp struct {
-	Id interface{} `json:"id" v:"required#日志ID不能为空" dc:"日志ID"`
+	Id    interface{} `json:"id" dc:"日志ID"`
+	Clear bool        `json:"clear" dc:"清除全部日志"`
 }
 
 type ServeLogDeleteModel struct{}

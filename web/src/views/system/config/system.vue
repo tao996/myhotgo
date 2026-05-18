@@ -16,7 +16,7 @@
         </n-card>
       </n-grid-item>
       <n-grid-item span="18">
-        <n-card :bordered="false" size="small" :title="typeTitle" class="proCard">
+        <n-card :bordered="false" size="small" :title="typeTitle" class="proCard my-form">
           <BasicSetting v-if="type === 1" />
           <ThemeSetting v-if="type === 2" />
           <RevealSetting v-if="type === 3" />

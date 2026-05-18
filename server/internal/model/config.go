@@ -131,7 +131,8 @@ type SmsConfig struct {
 }
 
 type PayConfig struct {
-	Debug bool `json:"payDebug"`
+	Debug bool   `json:"payDebug"`
+	Proxy string `json:"payProxy"` // 内网穿透域名，只在 debug 模式下有效
 	// 支付宝
 	AliPayAppId             string `json:"payAliPayAppId"`
 	AliPayPrivateKey        string `json:"payAliPayPrivateKey"`
