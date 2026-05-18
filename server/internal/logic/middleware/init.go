@@ -8,15 +8,6 @@ package middleware
 import (
 	"context"
 	"fmt"
-	"github.com/gogf/gf/v2/encoding/gjson"
-	"github.com/gogf/gf/v2/errors/gcode"
-	"github.com/gogf/gf/v2/frame/g"
-	"github.com/gogf/gf/v2/i18n/gi18n"
-	"github.com/gogf/gf/v2/net/ghttp"
-	"github.com/gogf/gf/v2/net/gtrace"
-	"github.com/gogf/gf/v2/os/gctx"
-	"github.com/gogf/gf/v2/text/gstr"
-	"go.opentelemetry.io/otel/attribute"
 	"hotgo/internal/consts"
 	"hotgo/internal/library/addons"
 	"hotgo/internal/library/contexts"
@@ -28,6 +19,16 @@ import (
 	"hotgo/utility/validate"
 	"net/http"
 	"strings"
+
+	"github.com/gogf/gf/v2/encoding/gjson"
+	"github.com/gogf/gf/v2/errors/gcode"
+	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/i18n/gi18n"
+	"github.com/gogf/gf/v2/net/ghttp"
+	"github.com/gogf/gf/v2/net/gtrace"
+	"github.com/gogf/gf/v2/os/gctx"
+	"github.com/gogf/gf/v2/text/gstr"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 type sMiddleware struct {
@@ -45,7 +46,6 @@ func NewMiddleware() *sMiddleware {
 		LoginUrl: "/common",
 		DemoWhiteList: g.Map{
 			"/admin/site/accountLogin": struct{}{}, // 账号登录
-			"/admin/site/mobileLogin":  struct{}{}, // 手机号登录
 			"/admin/genCodes/preview":  struct{}{}, // 预览代码
 		},
 		NotRecordRequest: g.Map{

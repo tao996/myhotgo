@@ -7,7 +7,7 @@
           v-for="item in accounts"
           :key="item.username"
           type="primary"
-          @click="login(item.username, item.password)"
+          @click="login(item.username, item.password, item.captcha)"
         >
           {{ item.name }}
         </n-button>
@@ -20,18 +20,18 @@
 </template>
 
 <script lang="ts" setup>
-import { getDemoAccounts } from "@/debug/account";
-interface Emits {
-  (e: "login", param: { username: string; password: string }): void;
-}
+  import { getDemoAccounts } from '@/debug/account';
+  interface Emits {
+    (e: 'login', param: { username: string; password: string; captcha: string }): void;
+  }
 
-const emit = defineEmits<Emits>();
+  const emit = defineEmits<Emits>();
 
-const accounts = getDemoAccounts();
+  const accounts = getDemoAccounts();
 
-function login(username: string, password: string) {
-  emit("login", { username, password });
-}
+  function login(username: string, password: string, captcha: string) {
+    emit('login', { username, password, captcha });
+  }
 </script>
 
 <style scoped></style>

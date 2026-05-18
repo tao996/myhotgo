@@ -7,7 +7,6 @@ package router
 
 import (
 	"context"
-	"github.com/gogf/gf/v2/net/ghttp"
 	"hotgo/internal/consts"
 	"hotgo/internal/controller/admin/admin"
 	"hotgo/internal/controller/admin/common"
@@ -16,6 +15,8 @@ import (
 	"hotgo/internal/router/genrouter"
 	"hotgo/internal/service"
 	"hotgo/utility/simple"
+
+	"github.com/gogf/gf/v2/net/ghttp"
 )
 
 func Admin(ctx context.Context, group *ghttp.RouterGroup) {
@@ -23,7 +24,7 @@ func Admin(ctx context.Context, group *ghttp.RouterGroup) {
 	group.ALL("/login", func(r *ghttp.Request) {
 		r.Response.RedirectTo("/admin")
 	})
-
+	// admin 接口
 	group.Group(simple.RouterPrefix(ctx, consts.AppAdmin), func(group *ghttp.RouterGroup) {
 		group.Bind(
 			common.Site, // 基础

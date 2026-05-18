@@ -7,11 +7,6 @@ package sys
 
 import (
 	"context"
-	"github.com/gogf/gf/v2/errors/gerror"
-	"github.com/gogf/gf/v2/frame/g"
-	"github.com/gogf/gf/v2/net/ghttp"
-	"github.com/gogf/gf/v2/os/gtime"
-	"github.com/gogf/gf/v2/util/grand"
 	"hotgo/internal/consts"
 	"hotgo/internal/dao"
 	"hotgo/internal/library/location"
@@ -20,7 +15,15 @@ import (
 	"hotgo/internal/model/entity"
 	"hotgo/internal/model/input/sysin"
 	"hotgo/internal/service"
+	"hotgo/utility/simple"
 	"time"
+
+	"github.com/gogf/gf/v2/errors/gerror"
+	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/net/ghttp"
+	"github.com/gogf/gf/v2/os/glog"
+	"github.com/gogf/gf/v2/os/gtime"
+	"github.com/gogf/gf/v2/util/grand"
 )
 
 type sSysSmsLog struct{}
@@ -129,14 +132,19 @@ func (s *sSysSmsLog) SendCode(ctx context.Context, in *sysin.SendCodeInp) (err e
 		in.Code = grand.Digits(4)
 	}
 
-	if err = sms.New(config.SmsDrive).SendCode(ctx, in); err != nil {
-		return
+	if in.Mock && simple.Debug(ctx) {
+		glog.Debug(ctx, "mock send mobile code:"+in.Code)
+	} else {
+		if err = sms.New(config.SmsDrive).SendCode(ctx, in); err != nil {
+			return
+		}
 	}
 
 	var data = new(entity.SysSmsLog)
 	data.Event = in.Event
 	data.Mobile = in.Mobile
 	data.Code = in.Code
+	data.Times = 0
 	data.Ip = location.GetClientIp(ghttp.RequestFromCtx(ctx))
 	data.Status = consts.CodeStatusNotUsed
 	data.CreatedAt = gtime.Now()
@@ -201,8 +209,11 @@ func (s *sSysSmsLog) AllowSend(ctx context.Context, models *entity.SysSmsLog, co
 			return
 		}
 	}
-
-	if gtime.Now().Before(models.CreatedAt.Add(time.Second * time.Duration(config.SmsMinInterval))) {
+	minInterval := config.SmsMinInterval // 最少 5 分钟发送一条
+	if minInterval < 300 {
+		minInterval = 300
+	}
+	if gtime.Now().Before(models.CreatedAt.Add(time.Second * time.Duration(minInterval))) {
 		err = gerror.New("发送频繁，请稍后再试！")
 		return
 	}
@@ -259,7 +270,7 @@ func (s *sSysSmsLog) VerifyCode(ctx context.Context, in *sysin.VerifyCodeInp) (e
 		return
 	}
 
-	if models.Times >= 10 {
+	if models.Times >= 5 {
 		err = gerror.New("验证码错误次数过多，请重新发送！")
 		return
 	}

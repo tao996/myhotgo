@@ -76,7 +76,14 @@ export function SendBindSms() {
     method: 'post',
   });
 }
-
+// 发送登录验证码
+export function SendLoginCode(params) {
+  return http.request({
+    url: '/site/accountCode',
+    method: 'post',
+    params,
+  });
+}
 export function SendSms(params) {
   return http.request({
     url: '/sms/send',
@@ -126,22 +133,6 @@ export function login(params) {
   return http.request<BasicResponseModel>(
     {
       url: ApiEnum.SiteAccountLogin,
-      method: 'POST',
-      params,
-    },
-    {
-      isTransformResponse: false,
-    }
-  );
-}
-
-/**
- * @description: 手机号登录
- */
-export function mobileLogin(params) {
-  return http.request<BasicResponseModel>(
-    {
-      url: ApiEnum.SiteMobileLogin,
       method: 'POST',
       params,
     },

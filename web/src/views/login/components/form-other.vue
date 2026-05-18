@@ -1,9 +1,6 @@
 <template>
   <n-form-item class="default-color">
     <div class="flex view-account-other">
-      <div class="flex-initial">
-        <span>其它登录方式</span>
-      </div>
       <div class="flex-initial mx-2">
         <a @click="handleLoginWechat">
           <n-icon size="24" color="rgb(24, 160, 88)">
@@ -18,23 +15,13 @@
           </n-icon>
         </a>
       </div>
-      <div
-        class="flex-initial"
-        style="margin-left: auto"
-        v-if="userStore.loginConfig?.loginRegisterSwitch === 1"
-      >
-        <a @click="updateActiveModule(moduleKey)">{{ tag }}</a>
-      </div>
     </div>
   </n-form-item>
 </template>
 
 <script lang="ts" setup>
-  import { LogoWechat, LogoTiktok } from '@vicons/ionicons5';
-  import { useUserStore } from '@/store/modules/user';
+  import { LogoTiktok, LogoWechat } from '@vicons/ionicons5';
   import { useMessage } from 'naive-ui';
-
-  const userStore = useUserStore();
 
   interface Props {
     moduleKey: string;
@@ -48,10 +35,6 @@
 
   const message = useMessage();
   const emit = defineEmits(['updateActiveModule']);
-
-  function updateActiveModule(key: string) {
-    emit('updateActiveModule', key);
-  }
 
   function handleLogoTiktok() {
     console.log('handleLogoTiktok...');

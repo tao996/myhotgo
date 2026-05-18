@@ -15,8 +15,8 @@ type BasicConfig struct {
 	IcpCode        string `json:"basicIcpCode"`
 	Logo           string `json:"basicLogo"`
 	Name           string `json:"basicName"`
-	Domain         string `json:"basicDomain"`
-	WsAddr         string `json:"basicWsAddr"`
+	Domain         string `json:"basicDomain"` // 网站域名
+	WsAddr         string `json:"basicWsAddr"` // websocket 地址
 	RegisterSwitch int    `json:"basicRegisterSwitch"`
 	SystemOpen     bool   `json:"basicSystemOpen"`
 }

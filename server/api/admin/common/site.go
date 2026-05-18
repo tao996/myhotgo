@@ -6,9 +6,10 @@
 package common
 
 import (
-	"github.com/gogf/gf/v2/frame/g"
 	"hotgo/internal/model"
 	"hotgo/internal/model/input/adminin"
+
+	"github.com/gogf/gf/v2/frame/g"
 )
 
 // LoginLogoutReq 注销登录
@@ -42,20 +43,15 @@ type LoginCaptchaRes struct {
 type AccountLoginReq struct {
 	g.Meta `path:"/site/accountLogin" method:"post" tags:"后台基础" summary:"账号登录"`
 	adminin.AccountLoginInp
+	Username string `json:"username" dc:"用户名"`
+	Email    string `json:"email" dc:"邮箱地址"`
+	Mobile   string `json:"mobile" dc:"手机号"`
 }
 
 type AccountLoginRes struct {
 	*adminin.LoginModel
-}
-
-// MobileLoginReq 提交手机号登录
-type MobileLoginReq struct {
-	g.Meta `path:"/site/mobileLogin" method:"post" tags:"后台基础" summary:"手机号登录"`
-	adminin.MobileLoginInp
-}
-
-type MobileLoginRes struct {
-	*adminin.LoginModel
+	Email  string `json:"email" dc:"邮箱地址"`
+	Mobile string `json:"mobile" dc:"手机号"`
 }
 
 // SiteConfigReq 获取配置
@@ -88,3 +84,13 @@ type SitePingReq struct {
 }
 
 type SitePingRes struct{}
+
+type AccountCodeReq struct {
+	g.Meta `path:"/site/accountCode" method:"post" tags:"后台基础" summary:"发送登录验证码"`
+	adminin.AccountCodeInp
+	Email  string `json:"email" dc:"邮箱地址"`
+	Mobile string `json:"mobile" dc:"手机号"`
+}
+
+type AccountCodeRes struct {
+}

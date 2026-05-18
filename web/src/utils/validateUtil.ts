@@ -36,6 +36,22 @@ export const validate = {
     }
     return true;
   },
+  /// 联合账号
+  mergeAccount(rule: FormItemRule, value: any, callback: Function): boolean | Error {
+    if (!value) {
+      callback(new Error('请输入账号'));
+    } else {
+      const regPhone = /^1([38][0-9]|4[579]|5[0-3,5-9]|6[6]|7[0135678]|9[89])\d{8}$/;
+      const regUserName = /^[0-9a-zA-Z]{6,16}$/;
+      const regEmails = /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/;
+      if (!regUserName.test(value) && !regEmails.test(value) && !regPhone.test(value)) {
+        callback(new Error('请输入合法的登录账号'));
+      } else {
+        callback();
+      }
+    }
+    return true;
+  },
   // 手机号 （eg:138********,159********）
   phone(rule: FormItemRule, value: any, callback: Function): boolean | Error {
     const regPhone = /^1([38][0-9]|4[579]|5[0-3,5-9]|6[6]|7[0135678]|9[89])\d{8}$/;

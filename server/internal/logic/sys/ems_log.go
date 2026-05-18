@@ -26,6 +26,7 @@ import (
 	"github.com/gogf/gf/v2/errors/gerror"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
+	"github.com/gogf/gf/v2/os/glog"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/os/gview"
 	"github.com/gogf/gf/v2/text/gstr"
@@ -179,10 +180,12 @@ func (s *sSysEmsLog) Send(ctx context.Context, in *sysin.SendEmsInp) (err error)
 	if !ok {
 		subject = simple.AppName(ctx)
 	}
-
-	err = ems.Send(config, in.Email, subject, in.Content)
-	if err != nil {
-		return
+	if in.Mock && simple.Debug(ctx) {
+		glog.Debug(ctx, "mock send email code:"+in.Code)
+	} else {
+		if err = ems.Send(config, in.Email, subject, in.Content); err != nil {
+			return gerror.Wrap(err, "发送邮件验证码失败")
+		}
 	}
 
 	var data = new(entity.SysEmsLog)
@@ -190,6 +193,7 @@ func (s *sSysEmsLog) Send(ctx context.Context, in *sysin.SendEmsInp) (err error)
 	data.Email = in.Email
 	data.Content = in.Content
 	data.Code = in.Code
+	data.Times = 0
 	data.Ip = location.GetClientIp(ghttp.RequestFromCtx(ctx))
 	data.Status = consts.CodeStatusNotUsed
 	data.CreatedAt = gtime.Now()

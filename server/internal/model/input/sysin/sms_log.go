@@ -7,11 +7,12 @@ package sysin
 
 import (
 	"context"
-	"github.com/gogf/gf/v2/errors/gerror"
-	"github.com/gogf/gf/v2/os/gtime"
 	"hotgo/internal/consts"
 	"hotgo/internal/model/entity"
 	"hotgo/internal/model/input/form"
+
+	"github.com/gogf/gf/v2/errors/gerror"
+	"github.com/gogf/gf/v2/os/gtime"
 )
 
 // SmsLogEditInp 修改/新增数据
@@ -74,6 +75,7 @@ type SendCodeInp struct {
 	Mobile   string `json:"mobile"    description:"手机号"` // 必填
 	Code     string `json:"code"      description:"验证码或短信内容"`
 	Template string `json:"-"         description:"发信模板 "`
+	Mock     bool   `json:"mock" description:"Mock 发送"`
 }
 
 // VerifyCodeInp 效验验证码

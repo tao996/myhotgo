@@ -13,13 +13,13 @@ interface Account {
    * 密码
    */
   password: string;
+  captcha: string;
 }
 /**
  * 获取配置的账号信息
  * @returns {[]Account} 返回账号信息数组
  */
 export function getDemoAccounts() {
-  
   let envConf = import.meta.env.VITE_APP_DEMO_ACCOUNT || "";
   // 帐号密码一样
   // [["username"],["username","password"],["username","password","name"]]
@@ -35,9 +35,10 @@ export function getDemoAccounts() {
           name,
           username,
           password,
+          captcha: "1",
         } as Account;
       });
     }
-  } catch (error) {}
+  } catch (error) { }
   return [] as Account[];
 }

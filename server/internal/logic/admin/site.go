@@ -17,6 +17,7 @@ import (
 	"hotgo/internal/model/input/sysin"
 	"hotgo/internal/service"
 	"hotgo/utility/simple"
+	"hotgo/utility/validate"
 
 	"github.com/gogf/gf/v2/crypto/gmd5"
 	"github.com/gogf/gf/v2/database/gdb"
@@ -28,7 +29,7 @@ import (
 
 type sAdminSite struct{}
 
-func NewAdminSite() *sAdminSite {
+func NewAdminSite() service.IAdminSite {
 	return &sAdminSite{}
 }
 
@@ -141,14 +142,104 @@ func (s *sAdminSite) Register(ctx context.Context, in *adminin.RegisterInp) (err
 	})
 }
 
+func (s *sAdminSite) getAccountType(ctx context.Context, account string) (string, error) {
+
+	if validate.IsEmail(account) {
+		return "email", nil
+	} else if validate.IsMobile(account) {
+		return "mobile", nil
+	} else {
+		if simple.Debug(ctx) {
+			return "username", nil
+		}
+	}
+	return "", gerror.New("只支持邮箱或手机号登录")
+}
+
+func (s *sAdminSite) AccountCode(ctx context.Context, in *adminin.AccountCodeInp) (err error) {
+	accountType, err := s.getAccountType(ctx, in.Account)
+	if err != nil {
+		return err
+	}
+	if exist, err := dao.AdminMember.Ctx(ctx).Where(accountType, in.Account).Exist(); err != nil {
+		return gerror.Wrap(err, "检查账号时错误")
+	} else if !exist { // 账号不存在则检查是否允许注册
+		// 只有手机号和邮箱能够注册
+		if accountType != "email" && accountType != "mobile" {
+			return gerror.New("不允许注册的账号类型")
+		}
+		if config, err := service.SysConfig().GetLogin(ctx); err != nil {
+			return err
+		} else {
+			if config.RegisterSwitch != 1 {
+				return gerror.New("管理员未开放注册")
+			}
+			if config.RoleId < 1 {
+				return gerror.New("管理员未配置默认角色")
+			}
+
+			if config.DeptId < 1 {
+				return gerror.New("管理员未配置默认部门")
+			}
+			if config.ForceInvite == 1 && in.InviteCode == "" {
+				return gerror.New("请填写邀请码")
+			}
+			if in.InviteCode != "" {
+				pmb, err := service.AdminMember().GetIdByCode(ctx, &adminin.GetIdByCodeInp{Code: in.InviteCode})
+				if err != nil {
+					return err
+				}
+
+				if pmb == nil {
+					err = gerror.New("邀请人信息不存在")
+					return err
+				}
+			}
+		}
+	}
+	if accountType == "mobile" {
+		if err = service.SysSmsLog().SendCode(ctx, &sysin.SendCodeInp{
+			Event:  consts.SmsTemplateLogin,
+			Mobile: in.Account,
+			Mock:   in.Mock,
+		}); err != nil {
+			return err
+		}
+
+	} else if accountType == "email" {
+		if err = service.SysEmsLog().Send(ctx, &sysin.SendEmsInp{
+			Event: consts.EmsTemplateLogin,
+			Email: in.Account,
+			Mock:  in.Mock,
+		}); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // AccountLogin 账号登录
 func (s *sAdminSite) AccountLogin(ctx context.Context, in *adminin.AccountLoginInp) (res *adminin.LoginModel, err error) {
 	defer func() {
 		service.SysLoginLog().Push(ctx, &sysin.LoginLogPushInp{Response: res, Err: err})
 	}()
 
+	if in.Password == "" && in.Code == "" {
+		err = gerror.New("请填写密码或验证码")
+		return
+	}
+	name, err := s.getAccountType(ctx, in.Account)
+	if err != nil {
+		return nil, gerror.Wrap(err, "账号格式错误")
+	}
+	config, err := service.SysConfig().GetLogin(ctx)
+	if err != nil {
+		return
+	}
+
 	var mb *entity.AdminMember
-	if err = dao.AdminMember.Ctx(ctx).Where("username", in.Username).Scan(&mb); err != nil {
+	if err = dao.AdminMember.Ctx(ctx).Where(name, in.Account).Scan(&mb); err != nil {
 		err = gerror.Wrap(err, consts.ErrorORM)
 		return
 	}
@@ -157,57 +248,106 @@ func (s *sAdminSite) AccountLogin(ctx context.Context, in *adminin.AccountLoginI
 		err = gerror.New("用户名或密码错误")
 		return
 	}
+	//	密码登录
+	// 如果账号不存在 mb == nil，则直接注册
+	var data adminin.MemberAddInp
+	if in.Password != "" { // 密码登录则账号必须存在
+		if mb == nil {
+			err = gerror.New("请检查账号是否正确")
+			return
+		}
+		if err = simple.CheckPassword(in.Password, mb.Salt, mb.PasswordHash); err != nil {
+			return
+		}
+	} else { // 验证码登录
+		if mb == nil {
+			data.Pid = 1
+			if in.InviteCode != "" {
+				pmb, err := service.AdminMember().GetIdByCode(ctx, &adminin.GetIdByCodeInp{Code: in.InviteCode})
+				if err != nil {
+					return nil, err
+				}
 
-	res = new(adminin.LoginModel)
-	res.Id = mb.Id
-	res.Username = mb.Username
-	if mb.Salt == "" {
-		err = gerror.New("用户信息错误")
-		return
+				if pmb == nil {
+					err = gerror.New("邀请人信息不存在")
+					return nil, err
+				}
+
+				data.Pid = pmb.Id
+			}
+			data.MemberEditInp = &adminin.MemberEditInp{
+				Id:       0,
+				RoleId:   config.RoleId,
+				PostIds:  config.PostIds,
+				DeptId:   config.DeptId,
+				Username: "",
+				Password: in.Password,
+				RealName: "",
+				Avatar:   config.Avatar,
+				Sex:      3, // 保密
+				Mobile:   "",
+				Status:   consts.StatusEnabled,
+			}
+			if name == "mobile" {
+				data.MemberEditInp.Mobile = in.Account
+			} else if name == "email" {
+				data.MemberEditInp.Email = in.Account
+			} else {
+				data.MemberEditInp.Username = in.Account
+			}
+
+			data.Salt = grand.S(6)
+			data.InviteCode = grand.S(12)
+			if in.Password != "" {
+				data.PasswordHash = gmd5.MustEncryptString(data.Password + data.Salt)
+			}
+			data.Level, data.Tree, err = service.AdminMember().GenTree(ctx, data.Pid)
+			if err != nil {
+				return nil, gerror.Wrap(err, "查询部门信息时错误")
+			}
+		}
+
+		if name == "mobile" {
+			if err = service.SysSmsLog().VerifyCode(ctx, &sysin.VerifyCodeInp{
+				Event:  consts.SmsTemplateLogin,
+				Mobile: in.Account,
+				Code:   in.Code,
+			}); err != nil {
+				return nil, gerror.Wrap(err, "登录验证码错误")
+			}
+		} else {
+			if err = service.SysEmsLog().VerifyCode(ctx, &sysin.VerifyEmsCodeInp{
+				Event: consts.EmsTemplateLogin,
+				Email: in.Account,
+				Code:  in.Code,
+			}); err != nil {
+				return nil, gerror.Wrap(err, "登录验证码错误")
+			}
+		}
+
 	}
-
-	if err = simple.CheckPassword(in.Password, mb.Salt, mb.PasswordHash); err != nil {
-		return
-	}
-
-	if mb.Status != consts.StatusEnabled {
-		err = gerror.New("账号已被禁用")
-		return
-	}
-
-	res, err = s.handleLogin(ctx, mb)
-	return
-}
-
-// MobileLogin 手机号登录
-func (s *sAdminSite) MobileLogin(ctx context.Context, in *adminin.MobileLoginInp) (res *adminin.LoginModel, err error) {
-	defer func() {
-		service.SysLoginLog().Push(ctx, &sysin.LoginLogPushInp{Response: res, Err: err})
-	}()
-
-	var mb *entity.AdminMember
-	if err = dao.AdminMember.Ctx(ctx).Where("mobile ", in.Mobile).Scan(&mb); err != nil {
-		err = gerror.Wrap(err, consts.ErrorORM)
-		return
-	}
-
 	if mb == nil {
-		err = gerror.New("账号不存在")
-		return
-	}
+		// 提交注册信息
+		if err = g.DB().Transaction(ctx, func(ctx context.Context, tx gdb.TX) (err error) {
+			id, err := dao.AdminMember.Ctx(ctx).Data(data).OmitEmptyData().InsertAndGetId()
+			if err != nil {
+				err = gerror.Wrap(err, consts.ErrorORM)
+				return
+			}
 
-	res = new(adminin.LoginModel)
-	res.Id = mb.Id
-	res.Username = mb.Username
-
-	err = service.SysSmsLog().VerifyCode(ctx, &sysin.VerifyCodeInp{
-		Event:  consts.SmsTemplateLogin,
-		Mobile: in.Mobile,
-		Code:   in.Code,
-	})
-
-	if err != nil {
-		return
+			// 更新岗位
+			if err = service.AdminMemberPost().UpdatePostIds(ctx, id, config.PostIds); err != nil {
+				err = gerror.Wrap(err, consts.ErrorORM)
+			}
+			data.Id = id
+			return
+		}); err != nil {
+			return nil, gerror.Wrap(err, "注册失败")
+		}
+		if err = dao.AdminMember.Ctx(ctx).Where("id", data.Id).Scan(&mb); err != nil {
+			err = gerror.Wrap(err, consts.ErrorORM)
+			return
+		}
 	}
 
 	if mb.Status != consts.StatusEnabled {
@@ -252,6 +392,13 @@ func (s *sAdminSite) handleLogin(ctx context.Context, mb *entity.AdminMember) (r
 		Id:       user.Id,
 		Token:    lt,
 		Expires:  expires,
+	}
+	if res.Username == "" {
+		if mb.Email != "" {
+			res.Username = mb.Email
+		} else if mb.Mobile != "" {
+			res.Username = mb.Mobile
+		}
 	}
 	return
 }

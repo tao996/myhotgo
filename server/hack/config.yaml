@@ -35,11 +35,11 @@ gfcli:
         clear: false
 
 
-#    service: # 生成业务配置
-#      srcFolder: "internal/logic"
-#      dstFolder: "internal/service"
-#      dstFileNameCase: "CamelLower"
-#      clear: true
+    service: # 生成业务配置
+      srcFolder: "internal/logic"
+      dstFolder: "internal/service"
+      dstFileNameCase: "CamelLower"
+      clear: false
 # addon service: gf gen service -s=addons/reads/logic -d=addons/reads/service
 #    service:
 #      srcFolder: "addons/reads/logic"

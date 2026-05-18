@@ -2,9 +2,10 @@ package adminin
 
 import (
 	"context"
+	"hotgo/utility/simple"
+
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/os/gtime"
-	"hotgo/utility/simple"
 )
 
 // RegisterInp 账号注册
@@ -41,17 +42,24 @@ type LoginModel struct {
 
 // AccountLoginInp 账号登录
 type AccountLoginInp struct {
-	Username string `json:"username" v:"required#用户名不能为空" dc:"用户名"`
-	Password string `json:"password" v:"required#密码不能为空" dc:"密码"`
-	Cid      string `json:"cid"  dc:"验证码ID"`
-	Code     string `json:"code" dc:"验证码"`
-	IsLock   bool   `json:"isLock"  dc:"是否为锁屏状态"`
-}
+	Account string `json:"account" dc:"账号"` // username, email, mobile 都会赋值到 account
 
-// MobileLoginInp 手机号登录
-type MobileLoginInp struct {
-	Mobile string `json:"mobile" v:"required|phone-loose#手机号不能为空|手机号格式不正确" dc:"手机号"`
-	Code   string `json:"code" v:"required#验证码不能为空"  dc:"验证码"`
+	Password   string `json:"password" dc:"密码"`
+	Code       string `json:"code" dc:"账号验证码"`
+	Captcha    string `json:"captcha" dc:"图形验证码"`
+	Cid        string `json:"cid"  dc:"图形验证码ID"`
+	IsLock     bool   `json:"isLock"  dc:"是否为锁屏状态"`
+	InviteCode string `json:"inviteCode" dc:"邀请码"`
+
+	Mock bool `json:"-" dc:"debug 测试验证码"`
+}
+type AccountCodeInp struct {
+	Account    string `json:"account" dc:"账号"` // email, mobile  都会赋值到 account
+	Captcha    string `json:"captcha" v:"required#图形验证码不能为空" dc:"图形验证码"`
+	Cid        string `json:"cid" v:"required#图形验证码ID错误" dc:"图形验证码ID"`
+	InviteCode string `json:"inviteCode" dc:"邀请码"`
+
+	Mock bool `json:"-" dc:"debug 测试验证码"`
 }
 
 // MemberLoginPermissions 登录用户角色信息

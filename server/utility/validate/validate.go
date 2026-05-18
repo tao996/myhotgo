@@ -7,14 +7,15 @@ package validate
 
 import (
 	"context"
-	"github.com/gogf/gf/v2/frame/g"
-	"github.com/gogf/gf/v2/net/ghttp"
-	"github.com/gogf/gf/v2/text/gstr"
 	"net"
 	"net/url"
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/net/ghttp"
+	"github.com/gogf/gf/v2/text/gstr"
 )
 
 // 是否判断
@@ -93,6 +94,13 @@ func IsEmail(email string) bool {
 	pattern := `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
 	reg := regexp.MustCompile(pattern)
 	return reg.MatchString(email)
+}
+
+// IsUsername 是否为用户名
+func IsUsername(username string) bool {
+	pattern := `^[a-zA-Z0-9_]{6,20}$`
+	reg := regexp.MustCompile(pattern)
+	return reg.MatchString(username)
 }
 
 // IsURL 是否是url地址

@@ -10,14 +10,7 @@ import {
   IS_LOCKSCREEN,
 } from '@/store/mutation-types';
 import { ResultEnum } from '@/enums/httpEnum';
-import {
-  getConfig,
-  getLoginConfig,
-  getUserInfo,
-  login,
-  logout,
-  mobileLogin,
-} from '@/api/system/user';
+import { getConfig, getLoginConfig, getUserInfo, login, logout } from '@/api/system/user';
 import { isWechatBrowser } from '@/utils/is';
 import { DeptTypeEnum } from '@/enums/deptEnum';
 const Storage = createStorage({ storage: localStorage });
@@ -161,10 +154,6 @@ export const useUserStore = defineStore({
     // 账号登录
     async login(userInfo) {
       return await this.handleLogin(login(userInfo));
-    },
-    // 手机号登录
-    async mobileLogin(userInfo) {
-      return await this.handleLogin(mobileLogin(userInfo));
     },
     async handleLogin(request: Promise<any>) {
       try {

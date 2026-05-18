@@ -6,9 +6,10 @@
 package sysin
 
 import (
-	"github.com/gogf/gf/v2/frame/g"
 	"hotgo/internal/model/entity"
 	"hotgo/internal/model/input/form"
+
+	"github.com/gogf/gf/v2/frame/g"
 )
 
 // EmsLogEditInp 修改/新增数据
@@ -62,6 +63,7 @@ type SendEmsInp struct {
 	Content  string `json:"content"      description:"邮件内容"`
 	Template string `json:"-"         description:"发信模板"`
 	TplData  g.Map  `json:"-" description:"模板变量"`
+	Mock     bool   `json:"mock" description:"Mock 发送"`
 }
 
 // VerifyEmsCodeInp 效验验证码

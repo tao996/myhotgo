@@ -13,14 +13,16 @@
         <n-form-item label="网站域名" path="basicDomain">
           <n-input v-model:value="formValue.basicDomain" placeholder="请输入网站域名" />
           <template #feedback>
-            如果客户端通过本地或内网访问，则认为是调试模式，走实际请求地址，否则走该配置
+            如果客户端通过本地或内网访问，则认为是调试模式，走实际请求地址，否则走该配置。 示例:
+            https://your.cn
           </template>
         </n-form-item>
 
         <n-form-item label="websocket地址" path="basicWsAddr">
           <n-input v-model:value="formValue.basicWsAddr" placeholder="请输入websocket地址" />
           <template #feedback>
-            如果客户端通过本地或内网访问，则认为是调试模式，走实际请求地址，否则走该配置
+            如果客户端通过本地或内网访问，则认为是调试模式，走实际请求地址，否则走该配置。示例:
+            wss://your.cn/socket
           </template>
         </n-form-item>
 
@@ -46,6 +48,9 @@
 
         <n-form-item label="版权所有" path="basicCopyright">
           <n-input placeholder="版权所有" v-model:value="formValue.basicCopyright" />
+          <template #feedback>
+            请填写网站版权信息，如：© 2026 YourCompanyName All Rights Reserved.
+          </template>
         </n-form-item>
 
         <div>
@@ -71,15 +76,15 @@
   const dialog = useDialog();
 
   const formValue = ref({
-    basicName: 'HotGo',
+    basicName: '',
     basicLogo: '',
-    basicDomain: 'https://hotgo.facms.cn',
-    basicWsAddr: 'wss://hotgo.facms.cn/socket',
+    basicDomain: '',
+    basicWsAddr: '',
     basicIcpCode: '',
     basicLoginCode: 0,
     basicRegisterSwitch: 1,
     basicCaptchaSwitch: 1,
-    basicCopyright: '© 2021 - 2023 HotGo All Rights Reserved.',
+    basicCopyright: '',
     basicCloseText:
       '网站维护中，暂时无法访问！本网站正在进行系统维护和技术升级，网站暂时无法访问，敬请谅解！',
     basicSystemOpen: true,

@@ -69,9 +69,9 @@ func Generate(ctx context.Context, captchaType int) (id string, base64 string) {
 }
 
 // Verify 验证输入的验证码是否正确
-func Verify(id, answer string) bool {
+func Verify(id, answer string, clear bool) bool {
 	if id == "" || answer == "" {
 		return false
 	}
-	return store.Verify(id, gstr.ToLower(answer), true)
+	return store.Verify(id, gstr.ToLower(answer), clear)
 }

@@ -8,14 +8,15 @@ package adminin
 import (
 	"context"
 	"fmt"
-	"github.com/gogf/gf/v2/errors/gerror"
-	"github.com/gogf/gf/v2/frame/g"
-	"github.com/gogf/gf/v2/os/gtime"
 	"hotgo/internal/consts"
 	"hotgo/internal/library/contexts"
 	"hotgo/internal/model/entity"
 	"hotgo/internal/model/input/form"
 	"hotgo/utility/validate"
+
+	"github.com/gogf/gf/v2/errors/gerror"
+	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/os/gtime"
 )
 
 // MemberUpdateCashInp 更新会员提现信息
@@ -117,8 +118,8 @@ type MemberEditInp struct {
 	Id           int64       `json:"id"                                            dc:"管理员ID"`
 	RoleId       int64       `json:"roleId"    v:"required#角色不能为空"            dc:"角色ID"`
 	PostIds      []int64     `json:"postIds"                                       dc:"岗位ID"`
-	DeptId       int64       `json:"deptId"    v:"required#部门不能为空"            dc:"部门ID"`
-	Username     string      `json:"username"   v:"required#账号不能为空"           dc:"帐号"`
+	DeptId       int64       `json:"deptId"    v:"required#部门不能为空"             dc:"部门ID"`
+	Username     string      `json:"username"                                      dc:"帐号"`
 	PasswordHash string      `json:"passwordHash"                                  dc:"密码hash"`
 	Password     string      `json:"password"                                      dc:"密码"`
 	RealName     string      `json:"realName"                                      dc:"真实姓名"`

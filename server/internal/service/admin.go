@@ -247,10 +247,9 @@ type (
 	IAdminSite interface {
 		// Register 账号注册
 		Register(ctx context.Context, in *adminin.RegisterInp) (err error)
+		AccountCode(ctx context.Context, in *adminin.AccountCodeInp) (err error)
 		// AccountLogin 账号登录
 		AccountLogin(ctx context.Context, in *adminin.AccountLoginInp) (res *adminin.LoginModel, err error)
-		// MobileLogin 手机号登录
-		MobileLogin(ctx context.Context, in *adminin.MobileLoginInp) (res *adminin.LoginModel, err error)
 		// BindUserContext 绑定用户上下文
 		BindUserContext(ctx context.Context, claims *model.Identity) (err error)
 	}

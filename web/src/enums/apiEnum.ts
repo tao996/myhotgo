@@ -4,8 +4,8 @@ export enum ApiEnum {
 
   // 基础
   SiteRegister = '/site/register', // 账号注册
-  SiteAccountLogin = '/site/accountLogin', // 账号登录
-  SiteMobileLogin = '/site/mobileLogin', // 手机号登录
+  SiteAccountLogin = '/site/accountLogin', // 账号(只支持邮箱+手机号)登录
+  SiteAccountCode = '/site/accountCode', // 账号登录验证码
   SiteLoginConfig = '/site/loginConfig', // 登录配置
   SiteLogout = '/site/logout', // 注销
   SiteConfig = '/site/config', // 配置信息

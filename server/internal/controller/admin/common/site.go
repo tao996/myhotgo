@@ -7,13 +7,16 @@ package common
 
 import (
 	"context"
-	"github.com/gogf/gf/v2/i18n/gi18n"
 	"hotgo/api/admin/common"
 	"hotgo/internal/consts"
 	"hotgo/internal/library/captcha"
 	"hotgo/internal/library/token"
 	"hotgo/internal/service"
+	"hotgo/utility/simple"
 	"hotgo/utility/validate"
+
+	"github.com/gogf/gf/v2/i18n/gi18n"
+	"github.com/gogf/gf/v2/os/glog"
 
 	"github.com/gogf/gf/v2/errors/gerror"
 	"github.com/gogf/gf/v2/frame/g"
@@ -93,7 +96,7 @@ func (c *cSite) LoginConfig(ctx context.Context, _ *common.SiteLoginConfigReq) (
 	res.LoginConfig = login
 	res.I18nSwitch = g.Cfg().MustGet(ctx, "system.i18n.switch", true).Bool()
 	res.DefaultLanguage = g.Cfg().MustGet(ctx, "system.i18n.defaultLanguage", consts.SysDefaultLanguage).String()
-	res.ProjectName = gi18n.T(ctx, "HotGo管理系统")
+	res.ProjectName = gi18n.T(ctx, g.Cfg().MustGet(ctx, `setting.projectName`).String())
 	return
 }
 
@@ -108,41 +111,73 @@ func (c *cSite) Captcha(ctx context.Context, _ *common.LoginCaptchaReq) (res *co
 	return
 }
 
-// Register 账号注册
-func (c *cSite) Register(ctx context.Context, req *common.RegisterReq) (res *common.RegisterRes, err error) {
-	err = service.AdminSite().Register(ctx, &req.RegisterInp)
+// AccountCode 发送登录验证码
+func (c *cSite) AccountCode(ctx context.Context, req *common.AccountCodeReq) (res *common.AccountCodeRes, err error) {
+	if req.Account == "" {
+		if req.Mobile != "" {
+			req.Account = req.Mobile
+		} else if req.Email != "" {
+			req.Account = req.Email
+		} else {
+			return nil, gerror.New("请输入账号")
+		}
+	}
+	login, err := service.SysConfig().GetLogin(ctx)
+	if err != nil {
+		return
+	}
+	req.Mock = false
+	if login.CaptchaSwitch == consts.StatusEnabled {
+		// 校验 验证码
+		if !captcha.Verify(req.Cid, req.Captcha, false) {
+			if simple.Debug(ctx) && req.Captcha == consts.MockCaptcha {
+				glog.Debug(ctx, "Debug 模式：跳过图形验证码错误")
+				req.Mock = true
+			} else {
+				err = gerror.New("图形验证码错误")
+				return
+			}
+		}
+	}
+	err = service.AdminSite().AccountCode(ctx, &req.AccountCodeInp)
 	return
 }
 
 // AccountLogin 账号登录
 func (c *cSite) AccountLogin(ctx context.Context, req *common.AccountLoginReq) (res *common.AccountLoginRes, err error) {
+
+	if req.Account == "" {
+		if req.Username != "" {
+			req.Account = req.Username
+		} else if req.Mobile != "" {
+			req.Account = req.Mobile
+		} else if req.Email != "" {
+			req.Account = req.Email
+		} else {
+			return nil, gerror.New("请输入账号")
+		}
+	}
 	login, err := service.SysConfig().GetLogin(ctx)
 	if err != nil {
 		return
 	}
-
-	if !req.IsLock && login.CaptchaSwitch == consts.StatusEnabled {
+	req.Mock = false
+	if login.CaptchaSwitch == consts.StatusEnabled {
 		// 校验 验证码
-		if !captcha.Verify(req.Cid, req.Code) {
-			err = gerror.New("验证码错误")
-			return
+		if !captcha.Verify(req.Cid, req.Captcha, true) {
+			if simple.Debug(ctx) && req.Captcha == consts.MockCaptcha {
+				req.Mock = true
+				glog.Debug(ctx, "Debug 模式：跳过图形验证码错误")
+			} else {
+				err = gerror.New("图形验证码错误")
+				return
+			}
 		}
 	}
 
 	model, err := service.AdminSite().AccountLogin(ctx, &req.AccountLoginInp)
 	if err != nil {
-		return
-	}
-
-	err = gconv.Scan(model, &res)
-	return
-}
-
-// MobileLogin 手机号登录
-func (c *cSite) MobileLogin(ctx context.Context, req *common.MobileLoginReq) (res *common.MobileLoginRes, err error) {
-	model, err := service.AdminSite().MobileLogin(ctx, &req.MobileLoginInp)
-	if err != nil {
-		return
+		return nil, gerror.Wrap(err, "账号登录失败")
 	}
 
 	err = gconv.Scan(model, &res)

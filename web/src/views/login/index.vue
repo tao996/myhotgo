@@ -76,14 +76,6 @@
   }
 
   onMounted(() => {
-    //是否开放注册
-    if (userStore.loginConfig?.loginRegisterSwitch === 1) {
-      const findItem = modules.find((item) => item.key === 'register');
-      if (!findItem) {
-        modules.push({ key: 'register', label: '注册账号', component: RegisterFrom });
-      }
-    }
-
     const key = router.currentRoute.value.query?.scope as string;
     if (key) {
       handleUpdateActiveModule(key);
@@ -159,8 +151,9 @@
   }
 
   .transition {
-    transition-property: color, background-color, border-color, outline-color, text-decoration-color,
-      fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+    transition-property:
+      color, background-color, border-color, outline-color, text-decoration-color, fill, stroke,
+      opacity, box-shadow, transform, filter, backdrop-filter;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     transition-duration: 0.15s;
   }
