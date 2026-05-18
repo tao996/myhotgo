@@ -28,6 +28,7 @@
           <GeoSetting v-if="type === 9" />
           <PaySetting v-if="type === 10" />
           <WechatSetting v-if="type === 11" />
+          <ContactSetting v-if="type === 20" />
         </n-card>
       </n-grid-item>
     </n-grid>
@@ -70,12 +71,25 @@
     }),
     LoginSetting = defineAsyncComponent(() => {
       return import('./LoginSetting.vue');
+    }),
+    ContactSetting = defineAsyncComponent(() => {
+      return import('./ContactSetting.vue');
     });
   const typeTabList = [
     {
       name: '基本设置',
       desc: '系统常规设置',
       key: 1,
+    },
+    {
+      name: '登录注册',
+      desc: '登录注册配置',
+      key: 6,
+    },
+    {
+      name: '联系方式',
+      desc: '联系方式配置',
+      key: 20,
     },
     // {
     //   name: '主题设置',
@@ -96,11 +110,6 @@
       name: '短信配置',
       desc: '短信验证码平台',
       key: 5,
-    },
-    {
-      name: '登录注册',
-      desc: '登录注册配置',
-      key: 6,
     },
     {
       name: '提现配置',
@@ -141,6 +150,7 @@
       PaySetting,
       WechatSetting,
       LoginSetting,
+      ContactSetting,
     },
     setup() {
       const router = useRouter();

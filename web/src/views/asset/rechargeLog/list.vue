@@ -219,8 +219,8 @@
   }
 
   function handleApplyRefund(record: Recordable) {
-    showModal.value = true;
     formParams.value = newState(record as State);
+    showModal.value = true;
   }
 
   function updateAcceptShowModal(value) {

@@ -59,11 +59,11 @@
 
   function onEditorFocus(val) {
     initFinish.value = true;
-    console.log(val);
+    // console.log(val);
   }
 
   function onEditorBlur(val) {
-    console.log(val);
+    // console.log(val);
   }
 
   function onUpdateContent() {

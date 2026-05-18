@@ -77,6 +77,13 @@ type SiteLoginConfigRes struct {
 	DefaultLanguage string `json:"defaultLanguage" dc:"默认语言设置"`
 	ProjectName     string `json:"projectName" dc:"项目名称"`
 }
+type SiteContactConfigReq struct {
+	g.Meta `path:"/site/contactConfig" method:"get" tags:"后台基础" summary:"获取联系信息"`
+}
+
+type SiteContactConfigRes struct {
+	*model.ContactConfig
+}
 
 // SitePingReq ping
 type SitePingReq struct {

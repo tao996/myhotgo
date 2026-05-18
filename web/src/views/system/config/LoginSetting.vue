@@ -21,7 +21,7 @@
           </n-radio-group>
         </n-form-item>
 
-        <n-form-item label="注册开关" path="loginRegisterSwitch">
+        <n-form-item label="账号注册开关" path="loginRegisterSwitch">
           <n-radio-group v-model:value="formValue.loginRegisterSwitch" name="cashSwitch">
             <n-space>
               <n-radio :value="1">开启</n-radio>
@@ -165,9 +165,9 @@
   function treeDataToCompressed(source) {
     for (const i in source) {
       options.value.roleTabs.push(source[i]);
-      source[i].children && source[i].children.length > 0
-        ? treeDataToCompressed(source[i].children)
-        : ''; // 子级递归
+      if (source[i].children && source[i].children.length > 0) {
+        treeDataToCompressed(source[i].children);
+      }
     }
 
     return options.value.roleTabs;

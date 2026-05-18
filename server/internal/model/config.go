@@ -187,3 +187,22 @@ type LoginConfig struct {
 	AutoOpenId     int     `json:"loginAutoOpenId"`
 	ForceInvite    int     `json:"loginForceInvite"`
 }
+
+type ContactConfig struct {
+	ContactWorkQrcode   string `json:"contactWorkQrcode"`
+	ContactWork         string `json:"contactWork"`
+	ContactFax          string `json:"contactFax"`
+	ContactTel          string `json:"contactTel"`
+	ContactText         string `json:"contactText"`
+	ContactTelegram     string `json:"contactTelegram"`
+	ContactWhatsapp     string `json:"contactWhatsapp"`
+	ContactTwitter      string `json:"contactTwitter"`
+	ContactFacebook     string `json:"contactFacebook"`
+	ContactEmail        string `json:"contactEmail"`
+	ContactYoutube      string `json:"contactYoutube"`
+	ContactDouyin       string `json:"contactDouyin"`
+	ContactWeibo        string `json:"contactWeibo"`
+	ContactQQ           string `json:"contactQQ"`
+	ContactWechat       string `json:"contactWechat"`
+	ContactWechatQrcode string `json:"contactWechatQrcode"`
+}
