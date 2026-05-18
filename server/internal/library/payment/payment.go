@@ -28,6 +28,8 @@ type PayClient interface {
 	Notify(ctx context.Context, in payin.NotifyInp) (res *payin.NotifyModel, err error)
 	// Refund 订单退款
 	Refund(ctx context.Context, in payin.RefundInp) (res *payin.RefundModel, err error)
+	// Query 查询订单
+	Query(ctx context.Context, in payin.PayQueryInp) (res *payin.NotifyModel, err error)
 }
 
 func New(name ...string) PayClient {

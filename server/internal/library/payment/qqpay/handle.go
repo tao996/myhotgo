@@ -7,6 +7,10 @@ package qqpay
 
 import (
 	"context"
+	"hotgo/internal/consts"
+	"hotgo/internal/model"
+	"hotgo/internal/model/input/payin"
+
 	"github.com/go-pay/gopay"
 	"github.com/go-pay/gopay/qq"
 	"github.com/gogf/gf/v2/errors/gerror"
@@ -14,9 +18,6 @@ import (
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/gogf/gf/v2/util/grand"
-	"hotgo/internal/consts"
-	"hotgo/internal/model"
-	"hotgo/internal/model/input/payin"
 )
 
 func New(config *model.PayConfig) *qqPay {
@@ -32,6 +33,29 @@ type qqPay struct {
 // Refund 订单退款
 func (h *qqPay) Refund(ctx context.Context, in payin.RefundInp) (res *payin.RefundModel, err error) {
 	err = gerror.New("暂不支持QQ支付申请退款，如有疑问请联系管理员")
+	return
+}
+
+func (h *qqPay) Query(ctx context.Context, in payin.PayQueryInp) (res *payin.NotifyModel, err error) {
+	if err = in.Filter(ctx); err != nil {
+		return nil, err
+	}
+	client := GetClient(h.config)
+	bm := make(gopay.BodyMap)
+	bm.
+		Set("mch_id", h.config.QQPayMchId).
+		Set("nonce_str", grand.Letters(32)).
+		Set("out_trade_no", in.OutTradeNo).
+		Set("transaction_id", in.TransactionId)
+	rst, err := client.OrderQuery(ctx, bm)
+	if err != nil {
+		return nil, err
+	}
+	res = new(payin.NotifyModel)
+	res.TransactionId = rst.TransactionId
+	res.OutTradeNo = rst.OutTradeNo
+	res.PayAt = gtime.New(rst.TimeEnd)
+	res.ActualAmount = gconv.Float64(rst.CouponFee) / 100 // 用户本次交易中，实际支付的金额 转为元，和系统内保持一至
 	return
 }
 

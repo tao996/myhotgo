@@ -109,8 +109,7 @@ func (s *sPay) Create(ctx context.Context, in payin.PayCreateInp) (res *payin.Pa
 	return
 }
 
-// GenNotifyURL 生成支付通知地址
-func (s *sPay) GenNotifyURL(ctx context.Context, in payin.PayCreateInp) (notifyURL string, err error) {
+func (s *sPay) getDomain(ctx context.Context) (string, error) {
 	domain := ""
 	if simple.Debug(ctx) {
 		pay, err := service.SysConfig().GetPay(ctx)
@@ -134,7 +133,15 @@ func (s *sPay) GenNotifyURL(ctx context.Context, in payin.PayCreateInp) (notifyU
 	if !validate.IsURL(domain) {
 		return "", gerror.New("网站域名格式有误，请检查！")
 	}
+	return domain, nil
+}
 
+// GenNotifyURL 生成支付通知地址
+func (s *sPay) GenNotifyURL(ctx context.Context, in payin.PayCreateInp) (notifyURL string, err error) {
+	domain, err := s.getDomain(ctx)
+	if err != nil {
+		return "", err
+	}
 	var object interface{}
 	switch in.PayType {
 	case consts.PayTypeAliPay:

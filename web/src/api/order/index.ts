@@ -78,7 +78,14 @@ export function Option() {
     method: 'GET',
   });
 }
-
+// 订单查询
+export function Query(params: { id?: number; order_sn?: string }) {
+  return http.request({
+    url: '/order/query',
+    method: 'GET',
+    params,
+  });
+}
 // 申请订单退款
 export function ApplyRefund(params) {
   return http.request({

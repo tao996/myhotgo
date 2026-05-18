@@ -135,13 +135,8 @@ func (s *sAdminOrder) ApplyRefund(ctx context.Context, in *adminin.OrderApplyRef
 	return
 }
 
-// PayNotify 支付成功通知
-func (s *sAdminOrder) PayNotify(ctx context.Context, in *payin.NotifyCallFuncInp) (err error) {
-	var models *entity.AdminOrder
-	if err = s.Model(ctx).Where(dao.AdminOrder.Columns().OrderSn, in.Pay.OrderSn).Scan(&models); err != nil {
-		return
-	}
-
+// 根据通知更新订阅状态
+func (s *sAdminOrder) updateAdminOrder(ctx context.Context, models *entity.AdminOrder, in *payin.NotifyCallFuncInp) (err error) {
 	if models == nil {
 		err = gerror.New("订单不存在")
 		return
@@ -160,6 +155,7 @@ func (s *sAdminOrder) PayNotify(ctx context.Context, in *payin.NotifyCallFuncInp
 		if err != nil {
 			return
 		}
+		models.Status = consts.OrderStatusDone
 
 		// 更新余额
 		_, err = service.AdminCreditsLog().SaveBalance(ctx, &adminin.CreditsLogSaveBalanceInp{
@@ -191,6 +187,15 @@ func (s *sAdminOrder) PayNotify(ctx context.Context, in *payin.NotifyCallFuncInp
 		websocket.SendToUser(in.Pay.MemberId, response)
 	})
 	return
+}
+
+// PayNotify 支付成功通知
+func (s *sAdminOrder) PayNotify(ctx context.Context, in *payin.NotifyCallFuncInp) (err error) {
+	var models *entity.AdminOrder
+	if err = s.Model(ctx).Where(dao.AdminOrder.Columns().OrderSn, in.Pay.OrderSn).Scan(&models); err != nil {
+		return
+	}
+	return s.updateAdminOrder(ctx, models, in)
 }
 
 // Create 创建充值订单
@@ -381,6 +386,42 @@ func (s *sAdminOrder) Delete(ctx context.Context, in *adminin.OrderDeleteInp) (e
 func (s *sAdminOrder) View(ctx context.Context, in *adminin.OrderViewInp) (res *adminin.OrderViewModel, err error) {
 	err = s.Model(ctx).Where(dao.AdminOrder.Columns().Id, in.Id).Scan(&res)
 	return
+}
+
+// Query 订单查询
+func (s *sAdminOrder) Query(ctx context.Context, in *adminin.OrderQueryInp) (res *adminin.OrderQueryModel, err error) {
+	if in.Id < 1 && in.OrderSn == "" {
+		err = gerror.New("ID或业务订单号不能为空")
+		return
+	}
+	where := g.Map{}
+	if in.Id > 0 {
+		where[dao.AdminOrder.Columns().Id] = in.Id
+	} else {
+		where[dao.AdminOrder.Columns().OrderSn] = in.OrderSn
+	}
+	var models *entity.AdminOrder
+	if err = s.Model(ctx).Where(where).Scan(&models); err != nil {
+		return nil, err
+	}
+	if models == nil {
+		return nil, gerror.New("充值订单不存在")
+	}
+
+	payLog, err := service.Pay().Query(ctx, adminin.OrderQueryInp{
+		OrderSn: models.OrderSn,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// 同步状态
+	err = s.updateAdminOrder(ctx, models, &payin.NotifyCallFuncInp{Pay: &payLog.PayLog})
+	if err != nil {
+		return nil, err
+	}
+
+	return &adminin.OrderQueryModel{AdminOrder: *models}, nil
 }
 
 // Status 更新充值订单状态

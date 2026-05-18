@@ -79,7 +79,7 @@
   import { BasicTable, TableAction } from '@/components/Table';
   import { BasicForm, useForm } from '@/components/Form/index';
   import { usePermission } from '@/hooks/web/usePermission';
-  import { List, Export, Delete } from '@/api/order';
+  import { List, Export, Delete, Query } from '@/api/order';
   import { State, columns, schemas, newState } from './model';
   import { ExportOutlined, DeleteOutlined } from '@vicons/antd';
   import ApplyRefund from './applyRefund.vue';
@@ -233,7 +233,9 @@
   }
   // 订单查询
   function handleApplyQuery(record: Recordable) {
-    console.log(record); // TODO: 订单查询
+    Query({ id: record.id }).then((_res) => {
+      console.log(_res);
+    });
   }
   defineExpose({
     reloadTable,

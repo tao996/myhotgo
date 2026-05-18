@@ -7,15 +7,17 @@ package alipay
 
 import (
 	"context"
+	"hotgo/internal/consts"
+	"hotgo/internal/model"
+	"hotgo/internal/model/input/payin"
+
 	"github.com/go-pay/gopay"
 	"github.com/go-pay/gopay/alipay"
 	"github.com/gogf/gf/v2/errors/gerror"
 	"github.com/gogf/gf/v2/net/ghttp"
 	"github.com/gogf/gf/v2/os/gfile"
+	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/util/gconv"
-	"hotgo/internal/consts"
-	"hotgo/internal/model"
-	"hotgo/internal/model/input/payin"
 )
 
 func New(config *model.PayConfig) *aliPay {
@@ -32,7 +34,7 @@ type aliPay struct {
 func (h *aliPay) Refund(ctx context.Context, in payin.RefundInp) (res *payin.RefundModel, err error) {
 	client, err := GetClient(h.config)
 	if err != nil {
-		return
+		return nil, err
 	}
 
 	bm := make(gopay.BodyMap)
@@ -51,6 +53,35 @@ func (h *aliPay) Refund(ctx context.Context, in payin.RefundInp) (res *payin.Ref
 		return
 	}
 	return
+}
+func (h *aliPay) Query(ctx context.Context, in payin.PayQueryInp) (res *payin.NotifyModel, err error) {
+	if err = in.Filter(ctx); err != nil {
+		return nil, err
+	}
+	client, err := GetClient(h.config)
+	if err != nil {
+		return nil, err
+	}
+	// https://github.com/small-ek/gopay/blob/main/examples/alipay/alipay_TradeQuery.go
+	// https://opendocs.alipay.com/open/02e7gm
+	bm := make(gopay.BodyMap)
+	if in.TransactionId != "" {
+		bm.Set("trade_no", in.OutTradeNo)
+	}
+	if in.OutTradeNo != "" {
+		bm.Set("out_trade_no", in.OutTradeNo)
+	}
+	rsp, err := client.TradeQuery(ctx, bm)
+	if err != nil {
+		return nil, err
+	}
+	res = new(payin.NotifyModel)
+	res.TransactionId = rsp.Response.TradeNo
+	res.OutTradeNo = rsp.Response.OutTradeNo
+	res.PayAt = gtime.New(rsp.Response.SendPayDate)
+	res.ActualAmount = gconv.Float64(rsp.Response.ReceiptAmount)
+
+	return res, nil
 }
 
 // Notify 异步通知

@@ -9,11 +9,6 @@ package pay
 
 import (
 	"context"
-	"github.com/gogf/gf/v2/encoding/gjson"
-	"github.com/gogf/gf/v2/errors/gerror"
-	"github.com/gogf/gf/v2/frame/g"
-	"github.com/gogf/gf/v2/net/ghttp"
-	"github.com/gogf/gf/v2/os/gctx"
 	"hotgo/internal/consts"
 	"hotgo/internal/dao"
 	"hotgo/internal/library/location"
@@ -21,6 +16,12 @@ import (
 	"hotgo/internal/model/entity"
 	"hotgo/internal/model/input/payin"
 	"hotgo/internal/service"
+
+	"github.com/gogf/gf/v2/encoding/gjson"
+	"github.com/gogf/gf/v2/errors/gerror"
+	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/net/ghttp"
+	"github.com/gogf/gf/v2/os/gctx"
 )
 
 // RegisterNotifyCall 注册支付成功回调方法
@@ -30,28 +31,7 @@ func (s *sPay) RegisterNotifyCall() {
 	})
 }
 
-// Notify 异步通知
-func (s *sPay) Notify(ctx context.Context, in *payin.PayNotifyInp) (res *payin.PayNotifyModel, err error) {
-	data, err := payment.New(in.PayType).Notify(ctx, payin.NotifyInp{})
-	if err != nil {
-		return
-	}
-
-	var models *entity.PayLog
-	if err = s.Model(ctx).Where(dao.PayLog.Columns().OutTradeNo, data.OutTradeNo).Scan(&models); err != nil {
-		return
-	}
-
-	if models == nil {
-		err = gerror.Newf("商户订单号[%v]不存在支付记录，请检查", data.OutTradeNo)
-		return
-	}
-
-	if models.PayStatus != consts.PayStatusWait {
-		err = gerror.Newf("商户订单号[%v]已被处理，请勿重复操作", data.OutTradeNo)
-		return
-	}
-
+func (s *sPay) doWithNotifyModel(ctx context.Context, models *entity.PayLog, data *payin.NotifyModel) (err error) {
 	var traceIds []string
 	if err = models.TraceIds.Scan(&traceIds); err != nil {
 		return
@@ -94,5 +74,30 @@ func (s *sPay) Notify(ctx context.Context, in *payin.PayNotifyInp) (res *payin.P
 
 	// 回调业务
 	payment.NotifyCall(ctx, &payin.NotifyCallFuncInp{Pay: models})
+	return
+}
+
+// Notify 异步通知
+func (s *sPay) Notify(ctx context.Context, in *payin.PayNotifyInp) (res *payin.PayNotifyModel, err error) {
+	data, err := payment.New(in.PayType).Notify(ctx, payin.NotifyInp{})
+	if err != nil {
+		return
+	}
+
+	var models *entity.PayLog
+	if err = s.Model(ctx).Where(dao.PayLog.Columns().OutTradeNo, data.OutTradeNo).Scan(&models); err != nil {
+		return
+	}
+
+	if models == nil {
+		err = gerror.Newf("商户订单号[%v]不存在支付记录，请检查", data.OutTradeNo)
+		return
+	}
+
+	if models.PayStatus != consts.PayStatusWait {
+		err = gerror.Newf("商户订单号[%v]已被处理，请勿重复操作", data.OutTradeNo)
+		return
+	}
+	err = s.doWithNotifyModel(ctx, models, data)
 	return
 }

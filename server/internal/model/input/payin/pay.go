@@ -7,9 +7,11 @@ package payin
 
 import (
 	"context"
-	"github.com/gogf/gf/v2/encoding/gjson"
 	"hotgo/internal/model/entity"
 	"hotgo/internal/model/input/form"
+
+	"github.com/gogf/gf/v2/encoding/gjson"
+	"github.com/gogf/gf/v2/errors/gerror"
 
 	"github.com/gogf/gf/v2/os/gtime"
 )
@@ -48,6 +50,22 @@ type PayCreateInp struct {
 
 type PayCreateModel struct {
 	Order *CreateOrderModel
+}
+
+type PayQueryInp struct {
+	OutTradeNo    string `json:"out_trade_no" description:"商户订单号"`
+	TransactionId string `json:"transaction_id" description:"交易号"`
+}
+
+func (in *PayQueryInp) Filter(ctx context.Context) error {
+	if in.OutTradeNo == "" && in.TransactionId == "" {
+		return gerror.New("商户订单号和交易号不能同时为空")
+	}
+	return nil
+}
+
+type PayQueryModel struct {
+	entity.PayLog
 }
 
 // PayEditInp 修改/新增支付日志

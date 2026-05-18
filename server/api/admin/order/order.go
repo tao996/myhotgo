@@ -6,9 +6,10 @@
 package order
 
 import (
-	"github.com/gogf/gf/v2/frame/g"
 	"hotgo/internal/model/input/adminin"
 	"hotgo/internal/model/input/form"
+
+	"github.com/gogf/gf/v2/frame/g"
 )
 
 // AcceptRefundReq 受理申请退款
@@ -66,6 +67,14 @@ type ViewReq struct {
 
 type ViewRes struct {
 	*adminin.OrderViewModel
+}
+type QueryReq struct {
+	g.Meta `path:"/order/query" method:"get" tags:"订单查询" summary:"查询同步订单信息"`
+	adminin.OrderQueryInp
+}
+
+type QueryRes struct {
+	*adminin.OrderQueryModel
 }
 
 // EditReq 修改/新增充值订单

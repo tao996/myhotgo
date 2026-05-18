@@ -78,6 +78,18 @@ func (c *cOrder) View(ctx context.Context, req *order.ViewReq) (res *order.ViewR
 	return
 }
 
+// Query 订单查询同步
+func (c *cOrder) Query(ctx context.Context, req *order.QueryReq) (res *order.QueryRes, err error) {
+	data, err := service.AdminOrder().Query(ctx, &req.OrderQueryInp)
+	if err != nil {
+		return
+	}
+
+	res = new(order.QueryRes)
+	res.OrderQueryModel = data
+	return
+}
+
 // Delete 删除充值订单
 func (c *cOrder) Delete(ctx context.Context, req *order.DeleteReq) (res *order.DeleteRes, err error) {
 	err = service.AdminOrder().Delete(ctx, &req.OrderDeleteInp)

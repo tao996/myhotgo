@@ -8,6 +8,12 @@ package wxpay
 import (
 	"context"
 	"crypto/rsa"
+	"hotgo/internal/consts"
+	weOpen "hotgo/internal/library/wechat"
+	"hotgo/internal/model"
+	"hotgo/internal/model/input/payin"
+	"time"
+
 	"github.com/go-pay/crypto/xpem"
 	"github.com/go-pay/gopay"
 	"github.com/go-pay/gopay/wechat/v3"
@@ -15,11 +21,6 @@ import (
 	"github.com/gogf/gf/v2/errors/gerror"
 	"github.com/gogf/gf/v2/net/ghttp"
 	"github.com/gogf/gf/v2/os/gtime"
-	"hotgo/internal/consts"
-	weOpen "hotgo/internal/library/wechat"
-	"hotgo/internal/model"
-	"hotgo/internal/model/input/payin"
-	"time"
 )
 
 func New(config *model.PayConfig) *wxPay {
@@ -63,6 +64,36 @@ func (h *wxPay) Refund(ctx context.Context, in payin.RefundInp) (res *payin.Refu
 		err = gerror.Newf("微信支付发起退款失败,状态码：%v", refund.Response.Status)
 		return
 	}
+	return
+}
+
+func (h *wxPay) Query(ctx context.Context, in payin.PayQueryInp) (res *payin.NotifyModel, err error) {
+	if err = in.Filter(ctx); err != nil {
+		return nil, err
+	}
+	client, err := GetClient(h.config)
+	if err != nil {
+		return nil, err
+	}
+
+	var wxRsp *wechat.QueryOrderRsp
+	if in.TransactionId != "" {
+		wxRsp, err = client.V3TransactionQueryOrder(ctx, wechat.TransactionId, in.TransactionId)
+	} else if in.OutTradeNo != "" {
+		wxRsp, err = client.V3TransactionQueryOrder(ctx, wechat.OutTradeNo, in.OutTradeNo)
+	}
+	if err != nil {
+		return nil, err
+	}
+	if wxRsp == nil {
+		return nil, gerror.New("微信支付查询订单失败")
+	}
+
+	res = new(payin.NotifyModel)
+	res.TransactionId = wxRsp.Response.TransactionId
+	res.OutTradeNo = wxRsp.Response.OutTradeNo
+	res.PayAt = gtime.New(wxRsp.Response.SuccessTime)
+	res.ActualAmount = float64(wxRsp.Response.Amount.PayerTotal / 100) // 转为元，和系统内保持一至
 	return
 }
 

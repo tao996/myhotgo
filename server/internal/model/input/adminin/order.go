@@ -7,14 +7,15 @@ package adminin
 
 import (
 	"context"
-	"github.com/gogf/gf/v2/errors/gerror"
-	"github.com/gogf/gf/v2/os/gtime"
 	"hotgo/internal/consts"
 	"hotgo/internal/library/dict"
 	"hotgo/internal/library/hgorm/hook"
 	"hotgo/internal/model/entity"
 	"hotgo/internal/model/input/form"
 	"hotgo/internal/model/input/payin"
+
+	"github.com/gogf/gf/v2/errors/gerror"
+	"github.com/gogf/gf/v2/os/gtime"
 )
 
 // OrderAcceptRefundInp 受理申请退款
@@ -104,6 +105,25 @@ func (in *OrderViewInp) Filter(ctx context.Context) (err error) {
 }
 
 type OrderViewModel struct {
+	entity.AdminOrder
+}
+
+type OrderQueryInp struct {
+	// Id 在 server/internal/controller/admin/admin/order.go 中代表的是 adminOrder.id
+	Id            int64  `json:"id"`
+	OrderSn       string `json:"order_sn"`
+	OutTradeNo    string `json:"out_trade_no"`
+	TransactionId string `json:"transaction_id"`
+}
+
+func (in *OrderQueryInp) Filter(ctx context.Context) (err error) {
+	if in.Id < 1 && in.OrderSn == "" && in.OutTradeNo == "" && in.TransactionId == "" {
+		return gerror.Newf("订单查询参数不能全部为空")
+	}
+	return
+}
+
+type OrderQueryModel struct {
 	entity.AdminOrder
 }
 

@@ -8,6 +8,7 @@ package service
 import (
 	"context"
 	"hotgo/internal/library/hgorm/handler"
+	"hotgo/internal/model/input/adminin"
 	"hotgo/internal/model/input/payin"
 
 	"github.com/gogf/gf/v2/database/gdb"
@@ -35,6 +36,7 @@ type (
 		Delete(ctx context.Context, in payin.PayDeleteInp) (err error)
 		// View 获取支付日志指定信息
 		View(ctx context.Context, in payin.PayViewInp) (res *payin.PayViewModel, err error)
+		Query(ctx context.Context, in adminin.OrderQueryInp) (res *payin.PayQueryModel, err error)
 		// Status 更新支付日志状态
 		Status(ctx context.Context, in payin.PayStatusInp) (err error)
 	}

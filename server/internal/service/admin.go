@@ -199,6 +199,8 @@ type (
 		Delete(ctx context.Context, in *adminin.OrderDeleteInp) (err error)
 		// View 获取充值订单指定信息
 		View(ctx context.Context, in *adminin.OrderViewInp) (res *adminin.OrderViewModel, err error)
+		// Query 订单查询
+		Query(ctx context.Context, in *adminin.OrderQueryInp) (res *adminin.OrderQueryModel, err error)
 		// Status 更新充值订单状态
 		Status(ctx context.Context, in *adminin.OrderStatusInp) (err error)
 	}
