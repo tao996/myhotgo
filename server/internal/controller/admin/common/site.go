@@ -100,6 +100,18 @@ func (c *cSite) LoginConfig(ctx context.Context, _ *common.SiteLoginConfigReq) (
 	return
 }
 
+// ContactConfig 联系方式配置
+func (c *cSite) ContactConfig(ctx context.Context, _ *common.SiteContactConfigReq) (res *common.SiteContactConfigRes, err error) {
+	res = new(common.SiteContactConfigRes)
+	data, err := service.SysConfig().GetContact(ctx)
+	if err != nil {
+		return
+	}
+
+	res.ContactConfig = data
+	return
+}
+
 // Captcha 登录验证码
 func (c *cSite) Captcha(ctx context.Context, _ *common.LoginCaptchaReq) (res *common.LoginCaptchaRes, err error) {
 	loginConf, err := service.SysConfig().GetLogin(ctx)
@@ -126,17 +138,24 @@ func (c *cSite) AccountCode(ctx context.Context, req *common.AccountCodeReq) (re
 	if err != nil {
 		return
 	}
-	req.Mock = false
+
+	isRunInDebug := simple.Debug(ctx)
 	if login.CaptchaSwitch == consts.StatusEnabled {
 		// 校验 验证码
 		if !captcha.Verify(req.Cid, req.Captcha, false) {
-			if simple.Debug(ctx) && req.Captcha == consts.MockCaptcha {
+			if isRunInDebug && req.Captcha == consts.MockCaptcha {
 				glog.Debug(ctx, "Debug 模式：跳过图形验证码错误")
-				req.Mock = true
 			} else {
 				err = gerror.New("图形验证码错误")
 				return
 			}
+		}
+	}
+	if isRunInDebug {
+
+		req.MockCode = login.MockCodeSwitch == consts.StatusEnabled
+		if req.MockCode {
+			glog.Debug(ctx, "Debug 模式：Mock 手机/短信验证码")
 		}
 	}
 	err = service.AdminSite().AccountCode(ctx, &req.AccountCodeInp)
@@ -161,12 +180,12 @@ func (c *cSite) AccountLogin(ctx context.Context, req *common.AccountLoginReq) (
 	if err != nil {
 		return
 	}
-	req.Mock = false
+	req.MockCaptcha = false
 	if login.CaptchaSwitch == consts.StatusEnabled {
 		// 校验 验证码
 		if !captcha.Verify(req.Cid, req.Captcha, true) {
 			if simple.Debug(ctx) && req.Captcha == consts.MockCaptcha {
-				req.Mock = true
+				req.MockCaptcha = true
 				glog.Debug(ctx, "Debug 模式：跳过图形验证码错误")
 			} else {
 				err = gerror.New("图形验证码错误")

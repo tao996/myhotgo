@@ -76,6 +76,22 @@ export function SendBindSms() {
     method: 'post',
   });
 }
+
+export function SendResetPasswordCode(params: { account: string }) {
+  return http.request({
+    url: '/member/sendResetPasswordCode',
+    method: 'post',
+    params,
+  });
+}
+
+export function ResetPassword(params: { account: string; password: string; code: string }) {
+  return http.request({
+    url: '/member/resetPassword',
+    method: 'post',
+    params,
+  });
+}
 // 发送登录验证码
 export function SendLoginCode(params) {
   return http.request({

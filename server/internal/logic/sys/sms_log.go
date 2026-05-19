@@ -15,7 +15,6 @@ import (
 	"hotgo/internal/model/entity"
 	"hotgo/internal/model/input/sysin"
 	"hotgo/internal/service"
-	"hotgo/utility/simple"
 	"time"
 
 	"github.com/gogf/gf/v2/errors/gerror"
@@ -132,7 +131,7 @@ func (s *sSysSmsLog) SendCode(ctx context.Context, in *sysin.SendCodeInp) (err e
 		in.Code = grand.Digits(4)
 	}
 
-	if in.Mock && simple.Debug(ctx) {
+	if in.Mock {
 		glog.Debug(ctx, "mock send mobile code:"+in.Code)
 	} else {
 		if err = sms.New(config.SmsDrive).SendCode(ctx, in); err != nil {

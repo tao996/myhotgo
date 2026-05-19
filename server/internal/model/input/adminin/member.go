@@ -21,10 +21,10 @@ import (
 
 // MemberUpdateCashInp 更新会员提现信息
 type MemberUpdateCashInp struct {
-	Name      string `json:"name" v:"required#支付宝姓名不能为空"  dc:"支付宝姓名"`
-	PayeeCode string `json:"payeeCode" v:"required#支付宝收款码不能为空"  dc:"支付宝收款码"`
-	Account   string `json:"account" v:"required#支付宝账号不能为空"  dc:"支付宝账号"`
-	Password  string `json:"password" v:"required#密码不能为空"  dc:"密码"`
+	Name      string `json:"name" dc:"支付宝姓名"`
+	PayeeCode string `json:"payeeCode" dc:"支付宝收款码"`
+	Account   string `json:"account" dc:"支付宝账号"`
+	Password  string `json:"password" dc:"密码"`
 }
 
 type MemberUpdateEmailInp struct {
@@ -36,6 +36,17 @@ type MemberUpdateEmailInp struct {
 type MemberUpdateMobileInp struct {
 	Mobile string `json:"mobile"  v:"required#换绑手机号不能为空"       dc:"换绑手机号"`
 	Code   string `json:"code" dc:"原号码短信验证码"`
+}
+
+type SendResetPasswordCodeInp struct {
+	Account string `json:"account"  v:"required#接收账号不能为空" dc:"接收账号"`
+}
+
+// MemberResetPasswordInp 重置密码
+type MemberResetPasswordInp struct {
+	Account  string `json:"account"  v:"required#接收账号不能为空" dc:"接收账号"`
+	Code     string `json:"code" v:"required:验证码不能为空" dc:"验证码"`
+	Password string `json:"password" v:"required:新的密码不能为空" dc:"新的密码"`
 }
 
 // GetIdByCodeInp 通过邀请码获取用户ID
@@ -64,8 +75,8 @@ type MemberProfileModel struct {
 
 // MemberUpdateProfileInp 更新用户资料
 type MemberUpdateProfileInp struct {
-	Avatar   string      `json:"avatar"   v:"required#头像不能为空"     dc:"头像"`
-	RealName string      `json:"realName"  v:"required#真实姓名不能为空"       dc:"真实姓名"`
+	Avatar   string      `json:"avatar"   dc:"头像"`
+	RealName string      `json:"realName"  dc:"昵称"`
 	Qq       string      `json:"qq"          dc:"QQ"`
 	Birthday *gtime.Time `json:"birthday"    dc:"生日"`
 	Sex      int         `json:"sex"         dc:"性别"`

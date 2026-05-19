@@ -81,6 +81,8 @@ type (
 		LoadConfig(ctx context.Context) (err error)
 		// GetLogin 获取登录配置
 		GetLogin(ctx context.Context) (conf *model.LoginConfig, err error)
+		// GetContact 获取联系信息
+		GetContact(ctx context.Context) (conf *model.ContactConfig, err error)
 		// GetWechat 获取微信配置
 		GetWechat(ctx context.Context) (conf *model.WechatConfig, err error)
 		// GetPay 获取支付配置

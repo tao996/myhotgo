@@ -8,7 +8,16 @@ package token
 import (
 	"context"
 	"fmt"
+	"hotgo/internal/consts"
+	"hotgo/internal/library/cache"
+	"hotgo/internal/library/contexts"
+	"hotgo/internal/model"
+	"hotgo/utility/simple"
+	"strings"
+	"time"
+
 	"github.com/gogf/gf/v2/crypto/gmd5"
+	"github.com/gogf/gf/v2/database/gredis"
 	"github.com/gogf/gf/v2/errors/gerror"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
@@ -16,15 +25,10 @@ import (
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/golang-jwt/jwt/v5"
-	"hotgo/internal/consts"
-	"hotgo/internal/library/cache"
-	"hotgo/internal/library/contexts"
-	"hotgo/internal/model"
-	"hotgo/utility/simple"
-	"time"
 )
 
 type Claims struct {
+	Num int64 `json:"num"`
 	*model.Identity
 	jwt.RegisteredClaims
 }
@@ -49,9 +53,31 @@ func GetConfig() *model.TokenConfig {
 	return config
 }
 
+// CountOnLine 统计当前用户在线数量
+func CountOnLine(ctx context.Context, user *model.Identity) (int, error) {
+	_, tokens, err := g.Redis().Scan(ctx, 0, gredis.ScanOption{
+		Match: _getBindKeyPrefix(user.App, user.Id),
+		Count: 10,
+		Type:  "string",
+	})
+	if err != nil {
+		return 0, gerror.Wrap(err, "统计在线登录数量错误")
+	}
+	return len(tokens), nil
+}
+
 // Login 登录
 func Login(ctx context.Context, user *model.Identity) (string, int64, error) {
+	var (
+		now = gtime.Now()
+		// 有效时长
+		duration = time.Second * gconv.Duration(config.Expires)
+	)
+
+	num := now.Unix()
+	bindKey := _getBindKey(user.App, user.Id, num)
 	claims := Claims{
+		num,
 		user,
 		jwt.RegisteredClaims{},
 	}
@@ -62,15 +88,11 @@ func Login(ctx context.Context, user *model.Identity) (string, int64, error) {
 	}
 
 	var (
-		now = gtime.Now()
+
 		// 认证key
 		authKey = GetAuthKey(header)
 		// 登录token
-		tokenKey = GetTokenKey(user.App, authKey)
-		// 身份绑定
-		bindKey = GetBindKey(user.App, user.Id)
-		// 有效时长
-		duration = time.Second * gconv.Duration(config.Expires)
+		tokenKey = _getTokenKey(user.App, authKey)
 	)
 
 	token := &Token{
@@ -112,20 +134,17 @@ func Logout(r *ghttp.Request) (err error) {
 		// 认证key
 		authKey = GetAuthKey(header)
 		// 登录token
-		tokenKey = GetTokenKey(contexts.GetModule(ctx), authKey)
+		tokenKey = _getTokenKey(contexts.GetModule(ctx), authKey)
 		// 身份绑定
-		bindKey = GetBindKey(contexts.GetModule(ctx), claims.Id)
+		bindKey = _getBindKey(contexts.GetModule(ctx), claims.Id, claims.Num)
 	)
 
 	// 删除token
 	if _, err = cache.Instance().Remove(ctx, tokenKey); err != nil {
 		return
 	}
-
-	if !config.MultiLogin {
-		if _, err = cache.Instance().Remove(ctx, bindKey); err != nil {
-			return
-		}
+	if _, err = cache.Instance().Remove(ctx, bindKey); err != nil {
+		return
 	}
 	return
 }
@@ -153,9 +172,9 @@ func ParseLoginUser(r *ghttp.Request) (user *model.Identity, err error) {
 		// 认证key
 		authKey = GetAuthKey(header)
 		// 登录token
-		tokenKey = GetTokenKey(claims.App, authKey)
+		tokenKey = _getTokenKey(claims.App, authKey)
 		// 身份绑定
-		bindKey = GetBindKey(claims.App, claims.Id)
+		bindKey = _getBindKey(claims.App, claims.Id, claims.Num)
 	)
 
 	// 检查token是否存在
@@ -291,15 +310,21 @@ func GetAuthorization(r *ghttp.Request) string {
 
 // GetAuthKey 认证key
 func GetAuthKey(token string) string {
-	return gmd5.MustEncryptString("hotgo" + token)
+	return gmd5.MustEncryptString(config.SecretKey + token)
+}
+func _replaceAppName(appName string) string {
+	return strings.Replace(appName, ".", "_", -1)
 }
 
-// GetTokenKey 令牌缓存key
-func GetTokenKey(appName, authKey string) string {
-	return fmt.Sprintf("%v:%v:%v", consts.CacheToken, appName, authKey)
+// _getTokenKey 令牌缓存key
+func _getTokenKey(appName, authKey string) string {
+	return fmt.Sprintf("%v:%v:%v", consts.CacheToken, _replaceAppName(appName), authKey)
 }
 
-// GetBindKey 令牌身份绑定key
-func GetBindKey(appName string, userId int64) string {
-	return fmt.Sprintf("%v:%v:%v", consts.CacheTokenBind, appName, userId)
+// _getBindKey 令牌身份绑定key
+func _getBindKey(appName string, userId int64, unixSeconds int64) string {
+	return fmt.Sprintf("%v:%v:%v:%v", consts.CacheTokenBind, _replaceAppName(appName), userId, unixSeconds)
+}
+func _getBindKeyPrefix(appName string, userId int64) string {
+	return fmt.Sprintf("%v:%v:%v:*", consts.CacheTokenBind, _replaceAppName(appName), userId)
 }

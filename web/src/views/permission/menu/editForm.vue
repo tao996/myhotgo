@@ -89,6 +89,7 @@
       <n-grid cols="2 300:1 600:2" v-if="formParams.type !== 3">
         <n-gi v-if="formParams.type === 1">
           <n-form-item label="目录组件" path="component">
+            <n-input placeholder="目录组件" v-model:value="formParams.component" />
             <n-select
               v-if="formParams.type === 1"
               :options="dict.getOptionUnRef('sys_menu_component')"

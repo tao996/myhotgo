@@ -2,7 +2,7 @@
   <div>
     <n-spin :show="show" description="请稍候...">
       <n-form :label-width="100" :model="formValue" :rules="rules" ref="formRef">
-        <n-form-item label="申请提现开关" path="cashSwitch">
+        <n-form-item label="申请提现开关" path="cashSwitch" :show-feedback="false">
           <n-radio-group v-model:value="formValue.cashSwitch" name="cashSwitch">
             <n-space>
               <n-radio :value="1">开启</n-radio>
@@ -11,11 +11,11 @@
           </n-radio-group>
         </n-form-item>
 
-        <n-form-item label="提现最低手续费（元）" path="cashMinFee">
+        <n-form-item label="提现最低手续费（元）" path="cashMinFee" :show-feedback="false">
           <n-input-number placeholder="" v-model:value="formValue.cashMinFee" style="width: 100%" />
         </n-form-item>
 
-        <n-form-item label="提现最低手续费比率" path="cashMinFeeRatio">
+        <n-form-item label="提现最低手续费比率" path="cashMinFeeRatio" :show-feedback="false">
           <n-input-number
             placeholder=""
             v-model:value="formValue.cashMinFeeRatio"
@@ -23,7 +23,7 @@
           />
         </n-form-item>
 
-        <n-form-item label="提现最低金额" path="cashMinMoney">
+        <n-form-item label="提现最低金额" path="cashMinMoney" :show-feedback="false">
           <n-input-number
             placeholder=""
             v-model:value="formValue.cashMinMoney"

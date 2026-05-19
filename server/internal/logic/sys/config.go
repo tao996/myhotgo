@@ -121,6 +121,16 @@ func (s *sSysConfig) GetLogin(ctx context.Context) (conf *model.LoginConfig, err
 	return
 }
 
+// GetContact 获取联系信息
+func (s *sSysConfig) GetContact(ctx context.Context) (conf *model.ContactConfig, err error) {
+	models, err := s.GetConfigByGroup(ctx, &sysin.GetConfigInp{Group: "contact"})
+	if err != nil {
+		return
+	}
+	err = gconv.Scan(models.List, &conf)
+	return
+}
+
 // GetWechat 获取微信配置
 func (s *sSysConfig) GetWechat(ctx context.Context) (conf *model.WechatConfig, err error) {
 	models, err := s.GetConfigByGroup(ctx, &sysin.GetConfigInp{Group: "wechat"})

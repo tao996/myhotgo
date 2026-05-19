@@ -201,7 +201,7 @@ func (s *sAdminSite) AccountCode(ctx context.Context, in *adminin.AccountCodeInp
 		if err = service.SysSmsLog().SendCode(ctx, &sysin.SendCodeInp{
 			Event:  consts.SmsTemplateLogin,
 			Mobile: in.Account,
-			Mock:   in.Mock,
+			Mock:   in.MockCode,
 		}); err != nil {
 			return err
 		}
@@ -210,7 +210,7 @@ func (s *sAdminSite) AccountCode(ctx context.Context, in *adminin.AccountCodeInp
 		if err = service.SysEmsLog().Send(ctx, &sysin.SendEmsInp{
 			Event: consts.EmsTemplateLogin,
 			Email: in.Account,
-			Mock:  in.Mock,
+			Mock:  in.MockCode,
 		}); err != nil {
 			return err
 		}

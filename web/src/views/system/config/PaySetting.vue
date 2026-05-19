@@ -12,14 +12,14 @@
         </n-form-item>
 
         <n-divider title-placement="left">支付宝</n-divider>
-        <n-alert :show-icon="false" type="info" style="margin-bottom: 16px">
+        <n-alert :show-icon="false" type="info">
           确保你已经申请开通过支付宝相关产品权限，建议按照以下步骤进行配置
           <br />1.
           下载支付宝平台密钥工具（下载地址：https://opendocs.alipay.com/common/02kipk），加签方式选择证书，加密算法选择RSA2
           <br />2. 生成后的私钥请在工具中转换为PKCS1格式 <br />3.
           在支付宝中配置证书，参考地址：https://opendocs.alipay.com/common/02khjo?pathHash=5403bedd
         </n-alert>
-        <n-form-item label="应用ID" path="payAliPayAppId" :show-feedback="false">
+        <n-form-item label="应用ID" path="payAliPayAppId" class="mt-4" :show-feedback="false">
           <n-input v-model:value="formValue.payAliPayAppId" placeholder="" />
           <template #feedback></template>
         </n-form-item>
@@ -77,12 +77,12 @@
         </n-form-item>
 
         <n-divider title-placement="left">QQ支付</n-divider>
-        <n-form-item label="应用ID" path="payQQPayAppId">
+        <n-form-item label="应用ID" path="payQQPayAppId" :show-feedbac="false">
           <n-input v-model:value="formValue.payQQPayAppId" placeholder="" />
           <template #feedback></template>
         </n-form-item>
 
-        <n-form-item label="商户ID" path="payQQPayMchId">
+        <n-form-item label="商户ID" path="payQQPayMchId" :show-feedbac="false">
           <n-input v-model:value="formValue.payQQPayMchId" placeholder="" />
           <template #feedback></template>
         </n-form-item>

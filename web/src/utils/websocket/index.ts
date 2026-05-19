@@ -15,116 +15,115 @@ let socket: WebSocket;
 let isActive: boolean;
 const messageHandler: Map<string, Function> = new Map();
 
-export default () => {
-  const heartCheck = {
-    timeout: 5000,
-    timeoutObj: setTimeout(() => {}),
-    serverTimeoutObj: setInterval(() => {}),
-    reset: function () {
-      clearTimeout(this.timeoutObj);
-      clearTimeout(this.serverTimeoutObj);
-      return this;
-    },
-    start: function () {
-      // eslint-disable-next-line @typescript-eslint/no-this-alias
-      const self = this;
-      clearTimeout(this.timeoutObj);
-      clearTimeout(this.serverTimeoutObj);
-      this.timeoutObj = setTimeout(function () {
-        socket.send(
-          JSON.stringify({
-            event: SocketEnum.EventPing,
-          })
-        );
-        self.serverTimeoutObj = setTimeout(function () {
-          console.log('[WebSocket] 关闭服务');
-          socket.close();
-        }, self.timeout);
-      }, this.timeout);
-    },
-  };
+const heartCheck = {
+  timeout: 5000,
+  timeoutObj: setTimeout(() => {}),
+  serverTimeoutObj: setInterval(() => {}),
+  reset: function () {
+    clearTimeout(this.timeoutObj);
+    clearTimeout(this.serverTimeoutObj);
+    return this;
+  },
+  start: function () {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const self = this;
+    clearTimeout(this.timeoutObj);
+    clearTimeout(this.serverTimeoutObj);
+    this.timeoutObj = setTimeout(function () {
+      socket.send(
+        JSON.stringify({
+          event: SocketEnum.EventPing,
+        })
+      );
+      self.serverTimeoutObj = setTimeout(function () {
+        console.log('[WebSocket] 关闭服务');
+        socket.close();
+      }, self.timeout);
+    }, this.timeout);
+  },
+};
 
-  const useUserStore = useUserStoreWidthOut();
-  let lockReconnect = false;
-  let timer: ReturnType<typeof setTimeout>;
-  const createSocket = () => {
-    console.log('[WebSocket] createSocket...');
-    if (useUserStore.token === '' || useUserStore.config?.wsAddr == '') {
-      console.error('[WebSocket] 用户未登录，稍后重试...');
-      resetReconnect();
-      return;
-    }
-    try {
-      socket = new WebSocket(`${useUserStore.config?.wsAddr}?authorization=${useUserStore.token}`);
-      init();
-      if (lockReconnect) {
-        lockReconnect = false;
-      }
-    } catch (e) {
-      console.error(`[WebSocket] createSocket err: ${e}`);
-      resetReconnect();
-      return;
-    }
-  };
-
-  const resetReconnect = () => {
+const useUserStore = useUserStoreWidthOut();
+let lockReconnect = false;
+let timer: ReturnType<typeof setTimeout>;
+export const createSocket = () => {
+  if (useUserStore.token === '' || useUserStore.config?.wsAddr == '') {
+    console.log('[WebSocket] 用户当前未登录 ...');
+    // resetReconnect();
+    return;
+  }
+  console.log('[WebSocket] createSocket...');
+  try {
+    socket = new WebSocket(`${useUserStore.config?.wsAddr}?authorization=${useUserStore.token}`);
+    init();
     if (lockReconnect) {
       lockReconnect = false;
     }
+  } catch (e) {
+    console.error(`[WebSocket] createSocket err: ${e}`);
+    resetReconnect();
+    return;
+  }
+};
+
+const resetReconnect = () => {
+  if (lockReconnect) {
+    lockReconnect = false;
+  }
+  reconnect();
+};
+
+const reconnect = () => {
+  console.log('[WebSocket] lockReconnect:' + lockReconnect);
+  if (lockReconnect) return;
+  lockReconnect = true;
+  clearTimeout(timer);
+  timer = setTimeout(() => {
+    createSocket();
+  }, 1000 * 10);
+};
+
+const init = () => {
+  socket.onopen = function (_) {
+    console.log('[WebSocket] 已连接');
+    heartCheck.reset().start();
+    isActive = true;
+  };
+
+  socket.onmessage = function (event) {
+    isActive = true;
+    // console.log('WebSocket:收到一条消息', event.data);
+
+    if (!isJsonString(event.data)) {
+      console.log('[WebSocket] message incorrect format:' + JSON.stringify(event));
+      return;
+    }
+
+    heartCheck.reset().start();
+
+    const message = JSON.parse(event.data) as WebSocketMessage;
+    onMessage(message);
+  };
+
+  socket.onerror = function (_) {
+    console.log('[WebSocket] 发生错误');
     reconnect();
+    isActive = false;
   };
 
-  const reconnect = () => {
-    console.log('[WebSocket] lockReconnect:' + lockReconnect);
-    if (lockReconnect) return;
-    lockReconnect = true;
-    clearTimeout(timer);
-    timer = setTimeout(() => {
-      createSocket();
-    }, 1000 * 10);
+  socket.onclose = function (_) {
+    console.log('[WebSocket] 已关闭');
+    heartCheck.reset();
+    reconnect();
+    isActive = false;
   };
 
-  const init = () => {
-    socket.onopen = function (_) {
-      console.log('[WebSocket] 已连接');
-      heartCheck.reset().start();
-      isActive = true;
-    };
-
-    socket.onmessage = function (event) {
-      isActive = true;
-      // console.log('WebSocket:收到一条消息', event.data);
-
-      if (!isJsonString(event.data)) {
-        console.log('[WebSocket] message incorrect format:' + JSON.stringify(event));
-        return;
-      }
-
-      heartCheck.reset().start();
-
-      const message = JSON.parse(event.data) as WebSocketMessage;
-      onMessage(message);
-    };
-
-    socket.onerror = function (_) {
-      console.log('[WebSocket] 发生错误');
-      reconnect();
-      isActive = false;
-    };
-
-    socket.onclose = function (_) {
-      console.log('[WebSocket] 已关闭');
-      heartCheck.reset();
-      reconnect();
-      isActive = false;
-    };
-
-    window.onbeforeunload = function () {
-      socket.close();
-      isActive = false;
-    };
+  window.onbeforeunload = function () {
+    socket.close();
+    isActive = false;
   };
-
+};
+export default () => {
   createSocket();
   registerGlobalMessage();
 };

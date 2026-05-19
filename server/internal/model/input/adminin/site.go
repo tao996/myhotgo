@@ -50,8 +50,8 @@ type AccountLoginInp struct {
 	Cid        string `json:"cid"  dc:"图形验证码ID"`
 	IsLock     bool   `json:"isLock"  dc:"是否为锁屏状态"`
 	InviteCode string `json:"inviteCode" dc:"邀请码"`
-
-	Mock bool `json:"-" dc:"debug 测试验证码"`
+	// 图形验证码（需要在后台打开）
+	MockCaptcha bool `json:"-" dc:"debug 图形验证码开关"`
 }
 type AccountCodeInp struct {
 	Account    string `json:"account" dc:"账号"` // email, mobile  都会赋值到 account
@@ -59,7 +59,9 @@ type AccountCodeInp struct {
 	Cid        string `json:"cid" v:"required#图形验证码ID错误" dc:"图形验证码ID"`
 	InviteCode string `json:"inviteCode" dc:"邀请码"`
 
-	Mock bool `json:"-" dc:"debug 测试验证码"`
+	// 图形验证码（需要在后台打开）
+	MockCaptcha bool `json:"-" dc:"debug 图形验证码开关"`
+	MockCode    bool `json:"-" dc:"debug 手机/邮件验证码开关"`
 }
 
 // MemberLoginPermissions 登录用户角色信息

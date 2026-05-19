@@ -20,6 +20,7 @@ import (
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/errors/gerror"
 	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/os/glog"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gregex"
 	"github.com/gogf/gf/v2/text/gstr"
@@ -252,8 +253,8 @@ func (s *sSysGenCodes) TableSelect(ctx context.Context, in *sysin.GenCodesTableS
 			newValue = gstr.SubStrFromEx(v.Value, config.Prefix)
 		}
 		if newValue == "" {
-			err = gerror.Newf("表名[%v]前缀必须和配置中的前缀设置[%v] 保持一致", v.Value, config.Prefix)
-			return
+			glog.Debug(ctx, fmt.Sprintf("表名[%v]前缀必须和配置中的前缀设置[%v] 保持一致", v.Value, config.Prefix))
+			continue
 		}
 
 		// 如果是插件模块，则移除掉插件表前缀

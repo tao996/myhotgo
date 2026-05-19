@@ -6,9 +6,10 @@
 package member
 
 import (
-	"github.com/gogf/gf/v2/frame/g"
 	"hotgo/internal/model/input/adminin"
 	"hotgo/internal/model/input/form"
+
+	"github.com/gogf/gf/v2/frame/g"
 )
 
 // UpdateCashReq 更新提现信息
@@ -34,6 +35,22 @@ type UpdateMobileReq struct {
 }
 
 type UpdateMobileRes struct{}
+
+// SendResetPasswordCodeReq 发送重置密码验证码
+type SendResetPasswordCodeReq struct {
+	g.Meta `path:"/member/sendResetPasswordCode" method:"post" tags:"用户" summary:"发送重置密码验证码"`
+	adminin.SendResetPasswordCodeInp
+}
+
+type SendResetPasswordCodeRes struct{}
+
+// ResetPasswordReq 重置密码
+type ResetPasswordReq struct {
+	g.Meta `path:"/member/resetPassword" method:"post" tags:"用户" summary:"重置密码"`
+	adminin.MemberResetPasswordInp
+}
+
+type ResetPasswordRes struct{}
 
 // UpdateProfileReq 更新用户资料
 type UpdateProfileReq struct {

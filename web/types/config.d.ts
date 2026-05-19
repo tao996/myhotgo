@@ -53,6 +53,7 @@ export interface GlobConfig {
   urlPrefix?: string;
   uploadUrl?: string;
   imgUrl?: string;
+  mode?: string;
 }
 
 export interface GlobEnvConfig {
@@ -68,4 +69,6 @@ export interface GlobEnvConfig {
   VITE_GLOB_UPLOAD_URL?: string;
   //图片前缀地址
   VITE_GLOB_IMG_URL?: string;
+  // 运行模式，可以通过 isDevMode() 获取
+  VITE_GLOB_MODE?: string;
 }

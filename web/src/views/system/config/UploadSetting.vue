@@ -8,7 +8,7 @@
         ref="formRef"
         label-placement="top"
       >
-        <n-form-item label="默认驱动" path="uploadDrive">
+        <n-form-item label="默认驱动" path="uploadDrive" :show-feedbac="false">
           <n-select
             placeholder="默认驱动"
             :options="dict.getOptionUnRef('config_upload_drive')"

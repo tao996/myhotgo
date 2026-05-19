@@ -6,9 +6,16 @@
           <n-input v-model:value="formValue.basicName" placeholder="请输入网站名称" />
         </n-form-item>
 
-        <n-form-item label="网站logo" path="basicLogo" :show-feedback="false">
-          <FileChooser v-model:value="formValue.basicLogo" file-type="image" />
-        </n-form-item>
+        <n-layout has-sider class="mb-4">
+          <n-layout-sider width="120">
+            <FileChooser v-model:value="formValue.basicLogo" file-type="image" />
+          </n-layout-sider>
+          <n-layout>
+            <n-form-item label="网站 logo" path="basicLogo" :show-feedback="false">
+              <n-input v-model:value="formValue.basicLogo" placeholder="请输入网站 logo 地址" />
+            </n-form-item>
+          </n-layout>
+        </n-layout>
 
         <n-form-item label="网站域名" path="basicDomain">
           <n-input v-model:value="formValue.basicDomain" placeholder="请输入网站域名" />

@@ -74,6 +74,10 @@ type (
 		AddIntegral(ctx context.Context, in *adminin.MemberAddIntegralInp) (err error)
 		// UpdateCash 修改提现信息
 		UpdateCash(ctx context.Context, in *adminin.MemberUpdateCashInp) (err error)
+		// SendResetPasswordCode 发送重置密码验证码
+		SendResetPasswordCode(ctx context.Context, in *adminin.SendResetPasswordCodeInp) (err error)
+		// ResetPassword 通过验证码重置密码
+		ResetPassword(ctx context.Context, in *adminin.MemberResetPasswordInp) (err error)
 		// UpdateEmail 换绑邮箱
 		UpdateEmail(ctx context.Context, in *adminin.MemberUpdateEmailInp) (err error)
 		// UpdateMobile 换绑手机号

@@ -385,24 +385,24 @@
         //   icon: 'SearchOutlined',
         //   tips: '搜索',
         // },
-        {
-          icon: 'GithubOutlined',
-          tips: 'github',
-          eventObject: {
-            click: () => window.open('https://github.com/bufanyun/hotgo'),
-          },
-        },
+        // {
+        //   icon: 'GithubOutlined',
+        //   tips: 'github',
+        //   eventObject: {
+        //     click: () => window.open('https://github.com/bufanyun/hotgo'),
+        //   },
+        // },
         {
           icon: 'BellOutlined',
           tips: '我的消息',
         },
-        {
-          icon: 'LockOutlined',
-          tips: '锁屏',
-          eventObject: {
-            click: () => useLockscreen.setLock(true),
-          },
-        },
+        // {
+        //   icon: 'LockOutlined',
+        //   tips: '锁屏',
+        //   eventObject: {
+        //     click: () => useLockscreen.setLock(true),
+        //   },
+        // },
       ];
 
       function renderCustomHeader() {

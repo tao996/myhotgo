@@ -3,16 +3,28 @@
     <n-spin :show="show" description="请稍候...">
       <n-form :label-width="100" :model="formValue" ref="formRef">
         <n-divider title-placement="left">开关配置</n-divider>
-        <n-form-item label="登录验证码开关" path="loginCaptchaSwitch">
+        <n-form-item label="Mock 验证码开关" path="loginMockCodeSwitch">
+          <n-radio-group v-model:value="formValue.loginMockCodeSwitch" name="loginMockCodeSwitch">
+            <n-space>
+              <n-radio :value="1">开启</n-radio>
+              <n-radio :value="2">关闭</n-radio>
+            </n-space>
+          </n-radio-group>
+          <template #feedback
+            >开启后，不会将验证码发送到手机/邮箱上，需要通过后台查看验证码，通常用在开发阶段</template
+          >
+        </n-form-item>
+        <n-form-item label="图片验证码开关" path="loginCaptchaSwitch">
           <n-radio-group v-model:value="formValue.loginCaptchaSwitch" name="loginCaptchaSwitch">
             <n-space>
               <n-radio :value="1">开启</n-radio>
               <n-radio :value="2">关闭</n-radio>
             </n-space>
           </n-radio-group>
+          <template #feedback>开启后，跳过图形验证码的验证，通常用在开发阶段</template>
         </n-form-item>
 
-        <n-form-item label="验证码方式" path="loginCaptchaType">
+        <n-form-item label="图片验证码方式" path="loginCaptchaType" :show-feedback="false">
           <n-radio-group v-model:value="formValue.loginCaptchaType" name="loginCaptchaType">
             <n-space>
               <n-radio :value="1">字符</n-radio>
@@ -21,7 +33,7 @@
           </n-radio-group>
         </n-form-item>
 
-        <n-form-item label="账号注册开关" path="loginRegisterSwitch">
+        <n-form-item label="账号注册开关" path="loginRegisterSwitch" :show-feedback="false">
           <n-radio-group v-model:value="formValue.loginRegisterSwitch" name="cashSwitch">
             <n-space>
               <n-radio :value="1">开启</n-radio>
@@ -55,11 +67,18 @@
         </n-form-item>
 
         <n-divider title-placement="left">注册默认信息配置</n-divider>
-        <n-form-item label="默认注册头像" path="loginAvatar">
-          <FileChooser v-model:value="formValue.loginAvatar" file-type="image" />
-        </n-form-item>
+        <n-layout has-sider class="mb-4">
+          <n-layout-sider width="120">
+            <FileChooser v-model:value="formValue.loginAvatar" file-type="image" />
+          </n-layout-sider>
+          <n-layout>
+            <n-form-item label="默认注册头像" path="loginAvatar" :show-feedback="false">
+              <n-input v-model:value="formValue.loginAvatar" placeholder="请输入默认注册头像地址" />
+            </n-form-item>
+          </n-layout>
+        </n-layout>
 
-        <n-form-item label="默认注册角色" path="loginRoleId">
+        <n-form-item label="默认注册角色" path="loginRoleId" :show-feedback="false">
           <n-tree-select
             key-field="id"
             :options="options.role"
@@ -68,7 +87,7 @@
           />
         </n-form-item>
 
-        <n-form-item label="默认注册部门" path="loginDeptId">
+        <n-form-item label="默认注册部门" path="loginDeptId" :show-feedback="false">
           <n-tree-select
             key-field="id"
             :options="options.dept"
@@ -122,6 +141,7 @@
   const formValue = ref({
     loginRegisterSwitch: 1,
     loginCaptchaSwitch: 1,
+    loginMockCodeSwitch: 0,
     loginCaptchaType: 1, // 1: 'str' or 2: 'numMath'
     loginForceInvite: 2,
     loginAutoOpenId: 2,

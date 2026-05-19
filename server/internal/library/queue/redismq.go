@@ -9,13 +9,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/gogf/gf/v2/database/gredis"
-	"github.com/gogf/gf/v2/errors/gerror"
-	"github.com/gogf/gf/v2/frame/g"
 	"hotgo/utility/encrypt"
 	"math/rand"
 	"strconv"
 	"time"
+
+	"github.com/gogf/gf/v2/database/gredis"
+	"github.com/gogf/gf/v2/errors/gerror"
+	"github.com/gogf/gf/v2/frame/g"
 )
 
 type RedisMq struct {
@@ -169,7 +170,7 @@ func (r *RedisMq) loopReadQueue(key string) (mqMsgList []MqMsg) {
 	for {
 		data, err := conn.Do(ctx, "RPOP", key)
 		if err != nil {
-			Logger().Warningf(ctx, "loopReadQueue redis RPOP err:%+v", err)
+			Logger().Warningf(ctx, "loopReadQueue redis RPOP key:%s; err:%+v", key, err)
 			break
 		}
 

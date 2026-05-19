@@ -2,6 +2,15 @@
   <div>
     <n-spin :show="show" description="请稍候...">
       <n-form :label-width="80" :model="formValue" :rules="rules" ref="formRef">
+        <n-form-item label="Mock 发送" path="smtpMock">
+          <n-radio-group v-model:value="formValue.smtpMock" name="smtpMock">
+            <n-space>
+              <n-radio :value="true">开启</n-radio>
+              <n-radio :value="false">关闭</n-radio>
+            </n-space>
+          </n-radio-group>
+          <template #feedback>开启后，将不会使用真实的短信服务；</template>
+        </n-form-item>
         <n-form-item label="SMTP服务器" path="smtpHost">
           <n-input v-model:value="formValue.smtpHost" placeholder="" />
           <template #feedback> 错误的配置发送邮件会导致服务器超时</template>
@@ -33,11 +42,11 @@
           <template #feedback>填写您的密码</template>
         </n-form-item>
 
-        <n-form-item label="发件人名称" path="smtpSendName">
+        <n-form-item label="发件人名称" path="smtpSendName" :show-feedback="false">
           <n-input v-model:value="formValue.smtpSendName" placeholder="" />
         </n-form-item>
 
-        <n-form-item label="管理员邮箱" path="smtpAdminMailbox">
+        <n-form-item label="管理员邮箱" path="smtpAdminMailbox" :show-feedback="false">
           <n-input v-model:value="formValue.smtpAdminMailbox" placeholder="" />
         </n-form-item>
 
@@ -144,6 +153,7 @@
   const message = useMessage();
 
   const formValue = ref({
+    smtpMock: false,
     smtpHost: 'smtpdm.aliyun.com',
     smtpPort: 25,
     smtpUser: '',

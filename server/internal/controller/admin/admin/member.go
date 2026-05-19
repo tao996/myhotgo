@@ -7,11 +7,12 @@ package admin
 
 import (
 	"context"
-	"github.com/gogf/gf/v2/errors/gerror"
 	"hotgo/api/admin/member"
 	"hotgo/internal/library/contexts"
 	"hotgo/internal/model/input/adminin"
 	"hotgo/internal/service"
+
+	"github.com/gogf/gf/v2/errors/gerror"
 )
 
 var (
@@ -23,6 +24,24 @@ type cMember struct{}
 // UpdateCash 修改代理商提现信息
 func (c *cMember) UpdateCash(ctx context.Context, req *member.UpdateCashReq) (res *member.UpdateCashRes, err error) {
 	err = service.AdminMember().UpdateCash(ctx, &req.MemberUpdateCashInp)
+	return
+}
+
+// SendResetPasswordCode 发送重置密码验证码
+func (c *cMember) SendResetPasswordCode(ctx context.Context, req *member.SendResetPasswordCodeReq) (res *member.SendResetPasswordCodeRes, err error) {
+	err = service.AdminMember().SendResetPasswordCode(ctx, &req.SendResetPasswordCodeInp)
+	return
+}
+
+// ResetPassword 重置密码
+func (c *cMember) ResetPassword(ctx context.Context, req *member.ResetPasswordReq) (res *member.ResetPasswordRes, err error) {
+	err = service.AdminMember().ResetPassword(ctx, &req.MemberResetPasswordInp)
+	return
+}
+
+// ResetPwd 为部门人员直接重置密码
+func (c *cMember) ResetPwd(ctx context.Context, req *member.ResetPwdReq) (res *member.ResetPwdRes, err error) {
+	err = service.AdminMember().ResetPwd(ctx, &req.MemberResetPwdInp)
 	return
 }
 
@@ -57,12 +76,6 @@ func (c *cMember) UpdatePwd(ctx context.Context, req *member.UpdatePwdReq) (res 
 		OldPassword: req.OldPassword,
 		NewPassword: req.NewPassword,
 	})
-	return
-}
-
-// ResetPwd 重置密码
-func (c *cMember) ResetPwd(ctx context.Context, req *member.ResetPwdReq) (res *member.ResetPwdRes, err error) {
-	err = service.AdminMember().ResetPwd(ctx, &req.MemberResetPwdInp)
 	return
 }
 

@@ -21,10 +21,10 @@
           />
         </n-form-item>
         <n-form-item label="类型名称" path="name">
-          <n-input placeholder="请输入类型名称" v-model:value="formParams.name" />
+          <n-input placeholder="请输入类型名称; 示例: 系统枚举" v-model:value="formParams.name" />
         </n-form-item>
         <n-form-item label="类型编码" path="type">
-          <n-input placeholder="请输入类型编码" v-model:value="formParams.type" />
+          <n-input placeholder="请输入类型编码; 示例 sys" v-model:value="formParams.type" />
         </n-form-item>
         <n-form-item label="排序" path="sort">
           <n-input-number v-model:value="formParams.sort" clearable />

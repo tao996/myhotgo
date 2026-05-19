@@ -76,7 +76,7 @@
           <FileChooser v-model:value="formValue.avatar" file-type="image" />
         </n-form-item>
 
-        <n-form-item label="姓名" path="realName">
+        <n-form-item label="昵称" path="realName">
           <n-input v-model:value="formValue.realName" />
         </n-form-item>
 
@@ -146,33 +146,33 @@
 
   const formValue = ref<UserInfoState>({
     id: 0,
-    deptName: "",
-    roleName: "",
-    cityLabel: "",
+    deptName: '',
+    roleName: '',
+    cityLabel: '',
     permissions: [],
-    username: "",
-    realName: "",
-    avatar: "",
+    username: '',
+    realName: '',
+    avatar: '',
     balance: 0,
     sex: 1,
-    qq: "",
-    email: "",
-    mobile: "",
-    birthday: "",
+    qq: '',
+    email: '',
+    mobile: '',
+    birthday: '',
     cityId: 0,
-    address: "",
+    address: '',
     cash: {
-      name: "",
-      account: "",
-      payeeCode: ""
+      name: '',
+      account: '',
+      payeeCode: '',
     },
-    createdAt: "",
+    createdAt: '',
     loginCount: 0,
-    lastLoginAt: "",
-    lastLoginIp: "",
+    lastLoginAt: '',
+    lastLoginIp: '',
     integral: 0,
-    openId: "",
-    inviteCode: ""
+    openId: '',
+    inviteCode: '',
   });
 
   function formSubmit() {

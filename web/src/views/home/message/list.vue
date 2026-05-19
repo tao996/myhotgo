@@ -110,6 +110,10 @@
   }
 
   function UnRead(item: MessageRow) {
+    if (item.isRead) {
+      loading.value = false;
+      return;
+    }
     UpRead({ id: item.id })
       .then(() => {
         item.isRead = true;

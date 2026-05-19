@@ -29,6 +29,7 @@ type EmailTemplate struct {
 
 // EmailConfig 邮箱配置
 type EmailConfig struct {
+	Mock         bool             `json:"smtpMock"`
 	User         string           `json:"smtpUser"`
 	Password     string           `json:"smtpPass"`
 	Addr         string           `json:"smtpAddr"`
@@ -110,6 +111,7 @@ type SmsTemplate struct {
 
 // SmsConfig 短信配置
 type SmsConfig struct {
+	Mock bool `json:"smsMock"`
 	// 基础
 	SmsDrive       string `json:"smsDrive"`
 	SmsMinInterval int    `json:"smsMinInterval"`
@@ -176,8 +178,9 @@ type WechatConfig struct {
 // LoginConfig 登录配置
 type LoginConfig struct {
 	RegisterSwitch int     `json:"loginRegisterSwitch"`
-	CaptchaSwitch  int     `json:"loginCaptchaSwitch"`
+	CaptchaSwitch  int     `json:"loginCaptchaSwitch"` // 图形验证码开关
 	CaptchaType    int     `json:"loginCaptchaType"`
+	MockCodeSwitch int     `json:"loginMockCodeSwitch"` // 手机/邮件 Mock 开关，只添加到 hotgo.sql 中，没有添加到 hotgo-pg.sql 中
 	Avatar         string  `json:"loginAvatar"`
 	RoleId         int64   `json:"loginRoleId"`
 	DeptId         int64   `json:"loginDeptId"`

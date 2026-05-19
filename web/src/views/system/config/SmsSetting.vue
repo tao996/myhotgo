@@ -8,8 +8,17 @@
         ref="formRef"
         label-placement="top"
       >
+        <n-form-item label="Mock 发送" path="smsMock">
+          <n-radio-group v-model:value="formValue.smsMock" name="smsMock">
+            <n-space>
+              <n-radio :value="true">开启</n-radio>
+              <n-radio :value="false">关闭</n-radio>
+            </n-space>
+          </n-radio-group>
+          <template #feedback>开启后，将不会使用真实的短信服务；</template>
+        </n-form-item>
         <n-divider title-placement="left">基础设置</n-divider>
-        <n-form-item label="默认驱动" path="smsDrive">
+        <n-form-item label="默认驱动" path="smsDrive" :show-feedbac="false">
           <n-select
             placeholder="默认发送驱动"
             :options="dict.getOptionUnRef('config_sms_drive')"
@@ -30,7 +39,7 @@
           <n-input-number v-model:value="formValue.smsMaxIpLimit" placeholder="" />
           <template #feedback> 同IP每天最大允许发送次数 </template>
         </n-form-item>
-        <n-form-item label="验证码有效期" path="smsCodeExpire">
+        <n-form-item label="验证码有效期" path="smsCodeExpire" :show-feedbac="false">
           <n-input-number
             :show-button="false"
             placeholder="请输入"
@@ -44,7 +53,7 @@
           <n-tab-pane name="aliyun">
             <template #tab> 阿里云 </template>
             <n-divider title-placement="left"> 阿里云</n-divider>
-            <n-form-item label="AccessKeyID" path="smsAliYunAccessKeyID">
+            <n-form-item label="AccessKeyID" path="smsAliYunAccessKeyID" :show-feedbac="false">
               <n-input v-model:value="formValue.smsAliYunAccessKeyID" placeholder="" />
               <template #feedback>
                 应用key和密钥你可以通过 https://ram.console.aliyun.com/manage/ak 获取
@@ -240,6 +249,7 @@
   };
 
   const formValue = ref({
+    smsMock: false,
     smsDrive: defaultTabName,
     smsMinInterval: 60,
     smsMaxIpLimit: 10,

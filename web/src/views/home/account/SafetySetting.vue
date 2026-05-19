@@ -6,9 +6,21 @@
           <template #suffix>
             <n-button type="primary" text @click="openUpdatePassForm">修改</n-button>
           </template>
-          <n-thing title="账户密码">
+          <n-thing title="修改密码">
             <template #description
               ><span class="text-gray-400">绑定手机和邮箱，并设置密码，帐号更安全</span></template
+            >
+          </n-thing>
+        </n-list-item>
+        <n-list-item>
+          <template #suffix>
+            <n-button type="primary" text @click="openResetPassForm">修改</n-button>
+          </template>
+          <n-thing title="重置密码">
+            <template #description
+              ><span class="text-gray-400"
+                >如果你忘记原密码，则可心通过手机或者邮箱重置密码</span
+              ></template
             >
           </n-thing>
         </n-list-item>
@@ -47,7 +59,7 @@
       width: dialogWidth,
     }"
   >
-    <n-form :label-width="80" :model="formValue" :rules="rules" ref="formRef">
+    <n-form :label-width="80" :model="formValue" ref="formRef">
       <n-form-item label="当前密码" path="oldPassword">
         <n-input
           type="password"
@@ -95,7 +107,7 @@
           </n-button>
         </n-input-group>
 
-        <template #feedback> 接收号码：+86{{ userStore.info?.mobile }} </template>
+        <template #feedback> 接收号码：+86{{ userStore.info?.mobile }}</template>
       </n-form-item>
 
       <n-form-item label="换绑手机号" path="mobile">
@@ -105,8 +117,8 @@
         <n-space justify="end">
           <n-button @click="showMobileModal = false">取消</n-button>
           <n-button type="primary" :loading="formMobileBtnLoading" @click="formMobileSubmit"
-            >保存更新</n-button
-          >
+            >保存更新
+          </n-button>
         </n-space>
       </div>
     </n-form>
@@ -137,7 +149,7 @@
             {{ sendLabel }}
           </n-button>
         </n-input-group>
-        <template #feedback> 接收邮箱：{{ userStore.info?.email }} </template>
+        <template #feedback> 接收邮箱：{{ userStore.info?.email }}</template>
       </n-form-item>
 
       <n-form-item label="换绑邮箱" path="email">
@@ -147,8 +159,66 @@
         <n-space justify="end">
           <n-button @click="showEmailModal = false">取消</n-button>
           <n-button type="primary" :loading="formEmailBtnLoading" @click="formEmailSubmit"
-            >保存更新</n-button
+            >保存更新
+          </n-button>
+        </n-space>
+      </div>
+    </n-form>
+  </n-modal>
+
+  <n-modal
+    :block-scroll="false"
+    :mask-closable="false"
+    v-model:show="showResetPassModal"
+    :show-icon="false"
+    preset="dialog"
+    title="重置密码"
+    :style="{
+      width: dialogWidth,
+    }"
+  >
+    <n-form :label-width="80" :model="resetPassFormValue" ref="formResetPassRef">
+      <n-form-item label="接收账号" path="account" :show-feedback="false">
+        <n-radio-group v-model:value="resetPassFormValue.account" name="account">
+          <n-space>
+            <n-radio v-if="userStore.info?.mobile !== ''" :value="userStore.info?.mobile"
+              >{{ userStore.info?.mobile }}
+            </n-radio>
+            <n-radio v-if="userStore.info?.email !== ''" :value="userStore.info?.email"
+              >{{ userStore.info?.email }}
+            </n-radio>
+          </n-space>
+        </n-radio-group>
+      </n-form-item>
+
+      <n-form-item label="验证码" path="code">
+        <n-input-group>
+          <n-input v-model:value="resetPassFormValue.code" placeholder="请输入验证码" />
+          <n-button
+            type="primary"
+            ghost
+            @click="sendResetPassCode"
+            :disabled="isCounting"
+            :loading="sendLoading"
           >
+            {{ sendLabel }}
+          </n-button>
+        </n-input-group>
+      </n-form-item>
+
+      <n-form-item class="mt-3" label="新的密码" path="password">
+        <n-input
+          type="password"
+          v-model:value="resetPassFormValue.password"
+          placeholder="请输入新的密码"
+        />
+      </n-form-item>
+      <div>
+        <n-space justify="end">
+          <n-button @click="showResetPassModal = false">取消</n-button>
+          <n-button type="primary" :loading="formResetPassBtnLoading" @click="formResetPassSubmit"
+            >确定
+          </n-button>
         </n-space>
       </div>
     </n-form>
@@ -167,19 +237,14 @@
     updateMemberEmail,
     SendBindEmail,
     SendBindSms,
+    SendResetPasswordCode,
+    ResetPassword,
   } from '@/api/system/user';
   import { TABS_ROUTES } from '@/store/mutation-types';
   import { useUserStore } from '@/store/modules/user';
 
   const { sendLabel, isCounting, loading: sendLoading, activateSend } = useSendCode();
   const userStore = useUserStore();
-  const rules = {
-    basicName: {
-      required: true,
-      message: '请输入网站名称',
-      trigger: 'blur',
-    },
-  };
 
   const formRef: any = ref(null);
   const message = useMessage();
@@ -311,5 +376,42 @@
 
   function sendEmailCode() {
     activateSend(SendBindEmail());
+  }
+
+  const formResetPassRef: any = ref(null);
+  const formResetPassBtnLoading = ref(false);
+  const showResetPassModal = ref(false);
+  const resetPassFormValue = ref({
+    password: '', // 新的密码
+    account: '', // 邮件或手机号
+    code: '',
+  });
+
+  function openResetPassForm() {
+    showResetPassModal.value = true;
+    resetPassFormValue.value.password = '';
+    resetPassFormValue.value.code = '';
+  }
+
+  function sendResetPassCode() {
+    if (resetPassFormValue.value.account == '') {
+      message.error('请选择接收账号');
+      return;
+    }
+    activateSend(SendResetPasswordCode({ account: resetPassFormValue.value.account }));
+    console.log(resetPassFormValue.value);
+  }
+
+  function formResetPassSubmit() {
+    console.log('resetPassFormValue.value:', resetPassFormValue.value);
+    formResetPassBtnLoading.value = true;
+    ResetPassword(resetPassFormValue.value)
+      .then((_res) => {
+        message.success('重置密码成功');
+        showResetPassModal.value = false;
+      })
+      .finally(() => {
+        formEmailBtnLoading.value = false;
+      });
   }
 </script>

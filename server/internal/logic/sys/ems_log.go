@@ -180,7 +180,7 @@ func (s *sSysEmsLog) Send(ctx context.Context, in *sysin.SendEmsInp) (err error)
 	if !ok {
 		subject = simple.AppName(ctx)
 	}
-	if in.Mock && simple.Debug(ctx) {
+	if in.Mock {
 		glog.Debug(ctx, "mock send email code:"+in.Code)
 	} else {
 		if err = ems.Send(config, in.Email, subject, in.Content); err != nil {

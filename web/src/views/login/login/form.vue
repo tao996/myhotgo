@@ -3,14 +3,15 @@
     ref="formRef"
     label-placement="left"
     size="large"
-    :model="mode === 'pwdLogin' ? formPwdData : formCodeData"
-    :rules="mode === 'pwdLogin' ? rules : mergeAccountRules"
+    :model="mode === 'pwdLogin' ? formInPassword : formCode"
+    :rules="mode === 'pwdLogin' ? passwordRules : codeRules"
   >
+    <!-- 密码登录 -->
     <template v-if="mode === 'pwdLogin'">
       <n-form-item path="username">
         <n-input
-          @keyup.enter="debouncePwdSubmit"
-          v-model:value="formPwdData.username"
+          @keyup.enter="debouncePasswordSubmit"
+          v-model:value="formInPassword.username"
           placeholder="请输入邮箱/手机号"
         >
           <template #prefix>
@@ -20,10 +21,10 @@
           </template>
         </n-input>
       </n-form-item>
-      <n-form-item path="pass">
+      <n-form-item path="password">
         <n-input
-          @keyup.enter="debouncePwdSubmit"
-          v-model:value="formPwdData.pass"
+          @keyup.enter="debouncePasswordSubmit"
+          v-model:value="formInPassword.password"
           type="password"
           show-password-on="click"
           placeholder="请输入登录密码"
@@ -41,13 +42,13 @@
           <n-checkbox v-model:checked="autoLogin">自动登录</n-checkbox>
           <n-button :text="true" @click="handleResetPassword">忘记密码？</n-button>
         </div>
-        <n-button type="primary" size="large" :block="true" @click="handlePwdLoginCaptcha">
+        <n-button type="primary" size="large" :block="true" @click="handlePasswordLoginModal">
           登录
         </n-button>
       </n-space>
 
       <n-modal
-        v-model:show="showLoginCaptcha"
+        v-model:show="showPasswordLoginModal"
         :show-icon="false"
         preset="dialog"
         title="验证码"
@@ -58,8 +59,8 @@
             <n-input
               :style="{ width: '100%' }"
               placeholder="请输入验证码"
-              @keyup.enter="debouncePwdSubmit"
-              v-model:value="formPwdData.captcha"
+              @keyup.enter="debouncePasswordSubmit"
+              v-model:value="formInPassword.captcha"
             >
               <template #prefix>
                 <n-icon size="18" color="#808695" :component="SafetyCertificateOutlined" />
@@ -86,20 +87,20 @@
             size="large"
             :block="true"
             :loading="loading"
-            @click="handleLogin"
+            @click="handlePasswordSubmit"
           >
             确定
           </n-button>
         </n-space>
       </n-modal>
     </template>
-    <!-- 登录码登录-->
+    <!-- 验证码登录-->
     <template v-if="mode === 'mergeCode'">
       <n-form-item path="mergeCode">
         <n-input
-          @keyup.enter="handleCodeSubmit"
-          v-model:value="formCodeData.account"
-          placeholder="请输入账号/邮箱/手机号"
+          @keyup.enter="debounceCodeSubmit"
+          v-model:value="formCode.account"
+          placeholder="请输入邮箱/手机号"
         >
           <template #prefix>
             <n-icon size="18" color="#808695">
@@ -112,8 +113,8 @@
       <n-form-item path="code">
         <n-input-group>
           <n-input
-            @keyup.enter="handleCodeSubmit"
-            v-model:value="formCodeData.code"
+            @keyup.enter="debounceCodeSubmit"
+            v-model:value="formCode.code"
             placeholder="请输入验证码"
           >
             <template #prefix>
@@ -123,7 +124,7 @@
           <n-button
             type="primary"
             ghost
-            @click="handleSendMergeAccountCode"
+            @click="handleCodeLoginModal"
             :disabled="isCounting"
             :loading="sendLoading"
           >
@@ -134,15 +135,22 @@
       <n-space :vertical="true" :size="24">
         <div class="flex-y-center justify-between">
           <n-checkbox v-model:checked="autoLogin">自动登录</n-checkbox>
+          <n-checkbox v-if="isRuningDev" v-model:checked="mockAccountCode">MockCode</n-checkbox>
           <n-button :text="true" @click="handleResetPassword">忘记密码？</n-button>
         </div>
-        <n-button type="primary" size="large" :block="true" :loading="loading" @click="handleLogin">
+        <n-button
+          type="primary"
+          size="large"
+          :block="true"
+          :loading="loading"
+          @click="handleCodeSubmit"
+        >
           登录
         </n-button>
       </n-space>
 
       <n-modal
-        v-model:show="showSendCodeCaptcha"
+        v-model:show="showCodeLoginModal"
         :show-icon="false"
         preset="dialog"
         title="验证码"
@@ -153,8 +161,8 @@
             <n-input
               :style="{ width: '100%' }"
               placeholder="请输入验证码"
-              @keyup.enter="sendMergeAccountCode"
-              v-model:value="formCodeData.captcha"
+              @keyup.enter="sendAccountLoginCode"
+              v-model:value="formCode.captcha"
             >
               <template #prefix>
                 <n-icon size="18" color="#808695" :component="SafetyCertificateOutlined" />
@@ -181,15 +189,15 @@
             size="large"
             :block="true"
             :loading="loading"
-            @click="sendMergeAccountCode"
+            @click="sendAccountLoginCode"
           >
-            确定
+            发送验证码
           </n-button>
         </n-space>
       </n-modal>
     </template>
-
-    <DemoAccount @login="handleDemoAccountLogin" />
+    <!-- 演示角色登录 -->
+    <DemoAccount v-if="isRuningDev" @login="handleDemoAccountLogin" />
   </n-form>
 </template>
 
@@ -210,6 +218,8 @@
   import { SendLoginCode } from '@/api/system/user';
   import { validate } from '@/utils/validateUtil';
   import { useDebounceFn } from '@vueuse/core';
+  import { createSocket } from '@/utils/websocket';
+  import { isDevMode } from '@/utils/env';
 
   interface Props {
     mode: string;
@@ -219,15 +229,14 @@
     mode: 'pwdLogin',
   });
 
-  interface FormPwdState {
+  interface FormState {
     username: string;
-    pass: string;
+    password: string;
     cid: string;
     captcha: string;
-    password: string;
   }
 
-  interface FormCodeState {
+  interface FormCodeLogicState {
     account: string;
     code: string;
     cid: string;
@@ -237,6 +246,8 @@
   const formRef = ref();
   const message = useMessage();
   const loading = ref(false);
+  const isRuningDev = ref(isDevMode());
+  const mockAccountCode = ref(true);
   const autoLogin = ref(true);
   const codeBase64 = ref('');
   const loadingBar = useLoadingBar();
@@ -247,59 +258,11 @@
   const { sendLabel, isCounting, loading: sendLoading, activateSend } = useSendCode();
   const emit = defineEmits(['updateActiveModule']);
   const LOGIN_NAME = PageEnum.BASE_LOGIN_NAME;
-  const debouncePwdSubmit = useDebounceFn((e) => {
-    handleSubmit(e);
-  }, 500);
-  const formPwdData = ref<FormPwdState>({
-    username: '',
-    pass: '',
-    password: '',
-    cid: '',
-    captcha: '',
-  });
 
-  const formCodeData = ref<FormCodeState>({
-    account: '',
-    code: '',
-    cid: '',
-    captcha: '',
-  });
-
-  const rules = {
-    username: { required: true, message: '请输入用户名', trigger: 'blur' },
-    pass: { required: true, message: '请输入密码', trigger: 'blur' },
-  };
-
-  const mergeAccountRules = {
-    account: { required: true, message: '请输入合法的账号', trigger: 'blur' },
-    code: { required: true, message: '请输入验证码', trigger: 'blur' },
-  };
   // 判断当前登录类型
   const isPwdLogin = computed(() => {
     return props.mode === 'pwdLogin';
   });
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    formRef.value.validate(async (errors) => {
-      if (!errors) {
-        if (userStore.loginConfig?.loginCaptchaSwitch === 1 && formPwdData.value.captcha === '') {
-          message.error('请输入验证码');
-          return;
-        }
-
-        const params = {
-          username: formPwdData.value.username,
-          password: aesEcb.encrypt(formPwdData.value.pass),
-          cid: formPwdData.value.cid,
-          captcha: formPwdData.value.captcha,
-        };
-        await handleLoginResp(userStore.login(params));
-      } else {
-        message.error('请填写完整信息，并且进行验证码校验');
-      }
-    });
-  };
 
   // 刷新图形验证码
   async function refreshCode() {
@@ -310,13 +273,17 @@
     const data = await GetCaptcha();
     codeBase64.value = data.base64;
     if (isPwdLogin.value) {
-      formPwdData.value.cid = data.cid;
-      formPwdData.value.captcha = '';
+      formInPassword.value.cid = data.cid;
+      formInPassword.value.captcha = '';
     } else {
-      formCodeData.value.cid = data.cid;
-      formCodeData.value.captcha = '';
+      formCode.value.cid = data.cid;
+      formCode.value.captcha = '';
     }
     loadingBar.finish();
+  }
+
+  function handleResetPassword() {
+    message.info('如果你忘记了密码，请使用验证码登录');
   }
 
   // 演示角色登录
@@ -334,16 +301,55 @@
     await handleLoginResp(userStore.login(params));
   }
 
-  // 验证码登录
-  const handleCodeSubmit = (e) => {
+  // 密码登录表单
+  const formInPassword = ref<FormState>({
+    username: '',
+    password: '',
+    cid: '',
+    captcha: '',
+  });
+  const passwordRules = {
+    username: { required: true, message: '请输入用户名', trigger: 'blur' },
+    password: { required: true, message: '请输入密码', trigger: 'blur' },
+    captcha: { required: true, message: '请输入图片验证码' },
+  };
+
+  // 密码登录
+  const showPasswordLoginModal = ref(false);
+
+  function handlePasswordLoginModal() {
+    const username = formInPassword.value.username;
+    if (username.trim() == '') {
+      message.error('请输入你的账号');
+      return;
+    }
+    const password = formInPassword.value.password;
+    if (password.trim() == '') {
+      message.error('请输入你的密码');
+      return;
+    }
+    refreshCode();
+    showPasswordLoginModal.value = true;
+  }
+
+  const handlePasswordSubmit = (e) => {
     e.preventDefault();
+    showPasswordLoginModal.value = false;
     formRef.value.validate(async (errors) => {
       if (!errors) {
+        if (
+          userStore.loginConfig?.loginCaptchaSwitch === 1 &&
+          formInPassword.value.captcha === ''
+        ) {
+          message.error('请输入验证码');
+          return;
+        }
+
         const params = {
-          account: formCodeData.value.account,
-          cid: formCodeData.value.cid,
-          captcha: formCodeData.value.captcha,
-          code: formCodeData.value.code,
+          username: formInPassword.value.username,
+          password: aesEcb.encrypt(formInPassword.value.password),
+          cid: formInPassword.value.cid,
+          captcha: formInPassword.value.captcha,
         };
         await handleLoginResp(userStore.login(params));
       } else {
@@ -351,78 +357,75 @@
       }
     });
   };
-  // 是否弹出手机验证码图片对话框
-  const showSendCodeCaptcha = ref(false);
+  const debouncePasswordSubmit = useDebounceFn((e) => {
+    handlePasswordSubmit(e);
+  }, 500);
 
-  //  弹出发送联合账号验证码的图片验证码
-  function handleSendMergeAccountCode() {
-    console.log('弹出发送联合账号验证码的图片验证码', formCodeData.value);
-    validate.mergeAccount(
-      mergeAccountRules.account,
-      formCodeData.value.account,
-      function (error?: Error) {
-        if (error === undefined) {
-          showSendCodeCaptcha.value = true;
-          return;
-        }
-        message.error(error.message);
+  // 验证码登录表单
+  const formCode = ref<FormCodeLogicState>({
+    account: '',
+    code: '',
+    cid: '',
+    captcha: '',
+  });
+  const codeRules = {
+    account: { required: true, message: '请输入电子邮箱/手机号码', trigger: 'blur' },
+    code: { required: true, message: '请输入验证码', trigger: 'blur' },
+    captcha: { required: true, message: '请输入图片验证码' },
+  };
+  const showCodeLoginModal = ref(false);
+
+  function handleCodeLoginModal() {
+    refreshCode();
+    validate.mergeAccount(codeRules.account, formCode.value.account, function (error?: Error) {
+      if (error === undefined) {
+        showCodeLoginModal.value = true;
+        return;
       }
-    );
+      message.error(error.message);
+    });
   }
 
-  // 发送验证码
-  function sendMergeAccountCode() {
-    validate.mergeAccount(
-      mergeAccountRules.account,
-      formCodeData.value.account,
-      function (error?: Error) {
-        showSendCodeCaptcha.value = false;
-        if (error === undefined) {
-          activateSend(
-            SendLoginCode({
-              account: formCodeData.value.account,
-              cid: formCodeData.value.cid,
-              captcha: formCodeData.value.captcha,
-              event: 'login',
-            })
-          );
-          return;
-        }
-        message.error(error.message);
+  // 发送账号验证码
+  function sendAccountLoginCode() {
+    validate.mergeAccount(codeRules.account, formCode.value.account, function (error?: Error) {
+      showCodeLoginModal.value = false;
+      if (error === undefined) {
+        activateSend(
+          SendLoginCode({
+            account: formCode.value.account,
+            cid: formCode.value.cid,
+            captcha: formCode.value.captcha,
+            event: 'login',
+          })
+        );
+        return;
       }
-    );
+      message.error(error.message);
+    });
   }
 
-  function handleResetPassword() {
-    message.info('如果你忘记了密码，请联系管理员找回');
-  }
-
-  // 密码登录
-  const showLoginCaptcha = ref(false);
-
-  function handlePwdLoginCaptcha() {
-    const username = formPwdData.value.username;
-    if (username.trim() == '') {
-      message.error('请输入你的账号');
-      return;
-    }
-    const password = formPwdData.value.pass;
-    if (password.trim() == '') {
-      message.error('请输入你的密码');
-      return;
-    }
-    showLoginCaptcha.value = true;
-  }
-
-  function handleLogin(e) {
-    if (isPwdLogin.value) {
-      showLoginCaptcha.value = false;
-      debouncePwdSubmit(e);
-      return;
-    }
-    showSendCodeCaptcha.value = false;
+  // 验证码登录
+  const handleCodeSubmit = (e) => {
+    e.preventDefault();
+    showCodeLoginModal.value = false;
+    formRef.value.validate(async (errors) => {
+      if (!errors) {
+        const params = {
+          account: formCode.value.account,
+          cid: formCode.value.cid,
+          captcha: formCode.value.captcha,
+          code: formCode.value.code,
+        };
+        await handleLoginResp(userStore.login(params));
+      } else {
+        message.error('请填写完整信息，并且进行验证码校验');
+      }
+    });
+  };
+  const debounceCodeSubmit = useDebounceFn((e) => {
     handleCodeSubmit(e);
-  }
+  }, 500);
 
   async function handleLoginResp(request: Promise<any>) {
     message.loading('登录中...');
@@ -433,6 +436,7 @@
       if (code == ResultEnum.SUCCESS) {
         const toPath = decodeURIComponent((route.query?.redirect || '/') as string);
         message.success('登录成功，即将进入系统');
+        createSocket();
         if (route.name === LOGIN_NAME) {
           await router.replace('/');
         } else {
@@ -448,5 +452,9 @@
     }
   }
 
-  onMounted(() => {});
+  onMounted(() => {
+    // setTimeout(function () {
+    //   refreshCode();
+    // });
+  });
 </script>

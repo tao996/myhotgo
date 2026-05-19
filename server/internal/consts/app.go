@@ -7,7 +7,7 @@ package consts
 
 // 应用类型
 const (
-	AppAdmin     = "admin"
+	AppAdmin     = "v10.admin"
 	AppApi       = "api"
 	AppHome      = "home"
 	AppWebSocket = "websocket"

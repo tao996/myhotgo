@@ -52,6 +52,10 @@
   function handleRead(index: number) {
     loading.value = true;
     const message = notificationStore.getMessages[currentTab.value].list[index];
+    if (message.isRead) {
+      loading.value = false;
+      return;
+    }
     UpRead({ id: message.id })
       .then(() => {
         message.isRead = true;
